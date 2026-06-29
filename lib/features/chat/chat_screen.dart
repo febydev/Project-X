@@ -69,6 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
       history: _state.chat,
       babyName: profile?.name ?? 'the baby',
       ageMonths: profile?.ageInMonths ?? 0,
+      context: _state.aiConsent ? _state.buildAiContext() : null,
     );
     if (!mounted) return;
     setState(() => _sending = false);

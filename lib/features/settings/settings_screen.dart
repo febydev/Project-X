@@ -217,9 +217,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 12),
+                SoftCard(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.insights_rounded,
+                          color: AppColors.sageDark),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Let Mira read my logs', style: text.titleMedium),
+                            Text(
+                              'Gives advice tailored to your baby\u2019s real day.',
+                              style: text.bodyMedium),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _state.aiConsent,
+                        onChanged: (v) => _state.setAiConsent(v),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 24),
-
-                // About / privacy
                 SoftCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

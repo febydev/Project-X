@@ -92,13 +92,18 @@ export default {
     const baby = payload.baby || {};
     const mode = payload.mode === "calm" ? "calm" : "chat";
     const history = Array.isArray(payload.messages) ? payload.messages : [];
+    const ctx = typeof payload.context === "string" ? payload.context : "";
 
     const system =
       PERSONA +
       (mode === "calm" ? CALM_ADDON : "") +
       `\nCONTEXT: The child is named ${baby.name || "the baby"}, about ${
         baby.ageMonths ?? "?"
-      } months old.`;
+      } months old.` +
+      (ctx
+        ? `\nWHAT'S HAPPENING WITH THIS BABY (from the parent's own logs): ${ctx}\n` +
+          `Use these real details to make your answer specific to THIS baby — reference their actual day when relevant. Never invent data you weren't given.`
+        : "");
 
     // Build OpenAI-style messages: system first, then the conversation.
     const messages = [{ role: "system", content: system }];

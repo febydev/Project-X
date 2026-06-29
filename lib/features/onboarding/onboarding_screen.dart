@@ -19,6 +19,7 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _nameController = TextEditingController();
   DateTime? _birthDate;
+  bool _consent = true;
 
   bool get _valid =>
       _nameController.text.trim().isNotEmpty && _birthDate != null;
@@ -45,6 +46,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await AppState.instance.saveProfile(
       BabyProfile(name: _nameController.text.trim(), birthDate: _birthDate!),
     );
+    await AppState.instance.setAiConsent(_consent);
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
@@ -131,12 +133,44 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   .animate(delay: 650.ms)
                   .fadeIn(duration: 500.ms)
                   .slideY(begin: 0.2, curve: Curves.easeOut),
-              const SizedBox(height: 36),
+              const SizedBox(height: 14),
+              SoftCard(
+                padding: const EdgeInsets.fromLTRB(18, 8, 12, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Let Mira understand your situation',
+                              style: text.titleMedium),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Mira can read your logs to give advice tailored to '
+                            'your baby. It stays on your phone and is only used to '
+                            'answer you — never sold or shared.',
+                            style: text.bodyMedium
+                                ?.copyWith(color: AppColors.inkSoft),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: _consent,
+                      onChanged: (v) => setState(() => _consent = v),
+                    ),
+                  ],
+                ),
+              )
+                  .animate(delay: 750.ms)
+                  .fadeIn(duration: 500.ms)
+                  .slideY(begin: 0.2, curve: Curves.easeOut),
+              const SizedBox(height: 30),
               PrimaryButton(
                 label: 'Begin',
                 icon: Icons.arrow_forward_rounded,
                 onPressed: _valid ? _finish : null,
-              ).animate(delay: 800.ms).fadeIn(duration: 500.ms),
+              ).animate(delay: 850.ms).fadeIn(duration: 500.ms),
               const SizedBox(height: 18),
               Center(
                 child: Text(

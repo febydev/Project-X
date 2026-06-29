@@ -24,6 +24,7 @@ class AppState extends ChangeNotifier {
   static const _kAccent = 'accent';
   static const _kMsgCountDate = 'msg_count_date';
   static const _kMsgCount = 'msg_count';
+  static const _kAiConsent = 'ai_consent';
 
   BabyProfile? _profile;
   final List<LogEntry> _entries = [];
@@ -31,6 +32,7 @@ class AppState extends ChangeNotifier {
   bool _premium = false;
   String _proxyUrl = AppConfig.defaultProxyUrl;
   int _accent = 0; // index into AppColors.accents
+  bool _aiConsent = false;
 
   // ---- Getters ----
   BabyProfile? get profile => _profile;
@@ -38,6 +40,7 @@ class AppState extends ChangeNotifier {
   bool get premium => _premium;
   String get proxyUrl => _proxyUrl;
   int get accent => _accent;
+  bool get aiConsent => _aiConsent;
   List<ChatMessage> get chat => List.unmodifiable(_chat);
 
   List<LogEntry> get entries {
@@ -94,6 +97,7 @@ class AppState extends ChangeNotifier {
     _premium = _storage.getBool(_kPremium);
     _proxyUrl = _storage.getString(_kProxyUrl) ?? AppConfig.defaultProxyUrl;
     _accent = _storage.getInt(_kAccent);
+    _aiConsent = _storage.getBool(_kAiConsent);
     notifyListeners();
   }
 
@@ -159,6 +163,49 @@ class AppState extends ChangeNotifier {
     _accent = index;
     await _storage.setInt(_kAccent, index);
     notifyListeners();
+  }
+
+  Future<void> setAiConsent(bool value) async {
+    _aiConsent = value;
+    await _storage.setBool(_kAiConsent, value);
+    notifyListeners();
+  }
+
+  /// A short, private summary of the baby's recent rhythm, built from on-device
+  /// logs. Sent to the AI ONLY when the parent has consented, so Mira's advice
+  /// is specific to THIS baby instead of generic.
+  String buildAiContext() {
+    final now = DateTime.now();
+    final last24 = entries.where((e) =>
+        now.difference(e.time) <= const Duration(hours: 24));
+
+    String agoOf(LogType t) {
+      final e = lastOf(t);
+      if (e == null) return 'none logged';
+      final d = now.difference(e.time);
+      if (d.inMinutes < 60) return '${d.inMinutes}m ago';
+      final h = d.inHours, m = d.inMinutes % 60;
+      return m == 0 ? '${h}h ago' : '${h}h ${m}m ago';
+    }
+
+    int countToday(LogType t) =>
+        today.where((e) => e.type == t).length;
+    int count24(LogType t) =>
+        last24.where((e) => e.type == t).length;
+
+    if (entries.isEmpty) return 'No activity logged yet.';
+
+    return [
+      'Today so far: ${countToday(LogType.feed)} feeds, '
+          '${countToday(LogType.sleep)} sleeps, '
+          '${countToday(LogType.diaper)} diaper changes.',
+      'Last feed: ${agoOf(LogType.feed)}. '
+          'Last sleep logged: ${agoOf(LogType.sleep)}. '
+          'Last diaper: ${agoOf(LogType.diaper)}.',
+      'Last 24h totals: ${count24(LogType.feed)} feeds, '
+          '${count24(LogType.sleep)} sleeps, '
+          '${count24(LogType.diaper)} diapers.',
+    ].join(' ');
   }
 
   // ---- Daily message quota (client-side guard; server enforces too) ----

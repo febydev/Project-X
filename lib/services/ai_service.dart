@@ -24,6 +24,7 @@ class AiService {
     required String babyName,
     required int ageMonths,
     String mode = 'chat',
+    String? context,
   }) async {
     if (proxyUrl.trim().isEmpty) {
       return AiResult(
@@ -36,6 +37,7 @@ class AiService {
       final body = jsonEncode({
         'mode': mode,
         'baby': {'name': babyName, 'ageMonths': ageMonths},
+        if (context != null && context.isNotEmpty) 'context': context,
         'messages': history
             .map((m) => {
                   'role': m.fromMira ? 'model' : 'user',

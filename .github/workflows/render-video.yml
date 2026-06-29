@@ -1,0 +1,65 @@
+name: Render Mira Intro Video
+
+on:
+  push:
+    paths:
+      - "video/**"
+      - ".github/workflows/render-video.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    name: Render intro video (Remotion)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Chrome Headless Shell (used by Remotion) needs these system libraries.
+      - name: Install Chrome dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
+            libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
+            libxrandr2 libgbm1 libasound2t64 libpango-1.0-0 libcairo2 fonts-liberation
+
+      - name: Install dependencies
+        working-directory: video
+        run: npm install
+
+      - name: Render video
+        working-directory: video
+        run: npx remotion render src/index.ts MiraPromo out/mira-intro.mp4 --log=verbose
+
+      - name: Upload video artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mira-intro-video
+          path: video/out/mira-intro.mp4
+          if-no-files-found: error
+          retention-days: 30
+
+      # Push the rendered MP4 back into the repo so the app can bundle it.
+      - name: Commit rendered video to assets
+        run: |
+          mkdir -p assets/intro
+          cp video/out/mira-intro.mp4 assets/intro/mira_intro.mp4
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets/intro/mira_intro.mp4
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: render Mira intro video [skip ci]"
+            git push
+          fi
