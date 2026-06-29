@@ -1,0 +1,23 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+
+# We keep the repo lean — CI regenerates these with `flutter create`.
+/android/
+/ios/
+/linux/
+/macos/
+/windows/
+/web/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Misc
+.DS_Store
