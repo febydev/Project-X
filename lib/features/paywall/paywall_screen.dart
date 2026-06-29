@@ -30,6 +30,17 @@ class _PaywallScreenState extends State<PaywallScreen> {
     Navigator.of(context).pop();
   }
 
+  /// Gentle, instantly-dismissible upsell shown when a free user taps a
+  /// premium feature. Not a harsh wall.
+  static Future<void> softShow(BuildContext context, String feature) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _SoftPaywall(feature: feature),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -88,17 +99,17 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   const SizedBox(height: 16),
                   _PlanTile(
                     title: 'Yearly',
-                    price: '\$39.99 / year',
-                    subtitle: 'Best value · about \$3.33/mo',
+                    price: '\$59.99 / year',
+                    subtitle: 'Best value · about \$5/mo',
                     selected: _plan == 1,
-                    badge: 'Save 44%',
+                    badge: 'Save 28%',
                     gradient: gradient,
                     onTap: () => setState(() => _plan = 1),
                   ),
                   const SizedBox(height: 12),
                   _PlanTile(
                     title: 'Monthly',
-                    price: '\$5.99 / month',
+                    price: '\$6.99 / month',
                     subtitle: '7-day free trial',
                     selected: _plan == 0,
                     gradient: gradient,
@@ -200,6 +211,78 @@ class _PlanTile extends StatelessWidget {
                 style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SoftPaywall extends StatelessWidget {
+  const _SoftPaywall({required this.feature});
+  final String feature;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final p = context.palette;
+    final gradient = Theme.of(context).extension<AppGradient>()!.linear;
+    return Container(
+      decoration: BoxDecoration(
+        color: p.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 14, 24, 28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            height: 5,
+            width: 44,
+            decoration: BoxDecoration(
+                color: p.hairline, borderRadius: BorderRadius.circular(3)),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            height: 56,
+            width: 56,
+            decoration: BoxDecoration(gradient: gradient, shape: BoxShape.circle),
+            child: const Icon(Icons.workspace_premium_rounded,
+                color: Colors.white, size: 28),
+          ),
+          const SizedBox(height: 16),
+          Text(feature, style: text.headlineSmall, textAlign: TextAlign.center),
+          const SizedBox(height: 6),
+          Text(
+            'This is a premium feature — try everything free for 7 days.',
+            textAlign: TextAlign.center,
+            style: text.bodyMedium,
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: PrimaryButton(
+              label: 'Start 7-day free trial',
+              onPressed: () {
+                AppState.instance.setPremium(true);
+                Navigator.pop(context);
+              },
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const PaywallScreen()));
+            },
+            style: TextButton.styleFrom(foregroundColor: p.inkSoft),
+            child: const Text('See what\u2019s included'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(foregroundColor: p.inkFaint),
+            child: const Text('Maybe later'),
+          ),
+        ],
       ),
     );
   }

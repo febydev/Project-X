@@ -20,6 +20,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _nameController = TextEditingController();
   DateTime? _birthDate;
   bool _consent = true;
+  bool? _firstBaby;
+  String? _usedBy;
+  String? _worry;
 
   bool get _valid =>
       _nameController.text.trim().isNotEmpty && _birthDate != null;
@@ -47,6 +50,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       BabyProfile(name: _nameController.text.trim(), birthDate: _birthDate!),
     );
     await AppState.instance.setAiConsent(_consent);
+    await AppState.instance.saveOnboardingExtras(
+      firstBaby: _firstBaby,
+      usedBy: _usedBy,
+      worry: _worry,
+    );
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
@@ -128,6 +136,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   .animate(delay: 650.ms)
                   .fadeIn(duration: 500.ms)
                   .slideY(begin: 0.2, curve: Curves.easeOut),
+              const SizedBox(height: 18),
+              _ChipRow(
+                label: 'Is this your first baby?',
+                options: const ['Yes', 'No'],
+                value: _firstBaby == null ? null : (_firstBaby! ? 'Yes' : 'No'),
+                onPick: (v) => setState(() => _firstBaby = v == 'Yes'),
+              ),
+              const SizedBox(height: 14),
+              _ChipRow(
+                label: 'Who\u2019s using Mira?',
+                options: const ['Mom', 'Dad', 'Both', 'Caregiver'],
+                value: _usedBy,
+                onPick: (v) => setState(() => _usedBy = v),
+              ),
+              const SizedBox(height: 14),
+              _ChipRow(
+                label: 'Your biggest worry right now?',
+                options: const ['Sleep', 'Feeding', 'Development', 'Just organized'],
+                value: _worry,
+                onPick: (v) => setState(() => _worry = v),
+              ),
               const SizedBox(height: 14),
               SoftCard(
                 padding: const EdgeInsets.fromLTRB(18, 8, 12, 8),
@@ -201,6 +230,57 @@ class _Field extends StatelessWidget {
           child,
         ],
       ),
+    );
+  }
+}
+
+class _ChipRow extends StatelessWidget {
+  const _ChipRow({
+    required this.label,
+    required this.options,
+    required this.value,
+    required this.onPick,
+  });
+  final String label;
+  final List<String> options;
+  final String? value;
+  final void Function(String) onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final p = context.palette;
+    final primary = Theme.of(context).colorScheme.primary;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: text.titleMedium),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            for (final o in options)
+              GestureDetector(
+                onTap: () => onPick(o),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: value == o ? primary : p.card,
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(
+                        color: value == o ? primary : p.hairline, width: 1.5),
+                  ),
+                  child: Text(o,
+                      style: text.bodyLarge?.copyWith(
+                          color: value == o ? Colors.white : p.ink,
+                          fontWeight: FontWeight.w600)),
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }

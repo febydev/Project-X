@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -90,6 +92,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     HapticFeedback.selectionClick();
     _state.setAccent(i);
+  }
+
+  void _partner() {
+    if (!_state.premium) {
+      PaywallScreen.softShow(context, 'Partner & caregiver sync');
+      return;
+    }
+    var code = _state.partnerCode;
+    if (code == null || code.isEmpty) {
+      code = (100000 + Random().nextInt(900000)).toString();
+      _state.setPartner(_state.partnerName ?? 'Partner', code);
+    }
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Partner & caregivers'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Share this code with your partner so you both see the same '
+              'baby and logs:',
+              style: TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 14),
+            SelectableText(
+              code,
+              style: const TextStyle(
+                  fontSize: 34, fontWeight: FontWeight.w800, letterSpacing: 6),
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'Real-time sync activates once Firebase is connected (one-time '
+              'setup — see PARTNER_SYNC.md). Until then this code is saved and '
+              'everything stays on your phone.',
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Done')),
+        ],
+      ),
+    );
   }
 
   @override
@@ -234,6 +282,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         value: _state.aiConsent,
                         onChanged: (v) => _state.setAiConsent(v),
                       ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Partner sync
+                Text('Family', style: text.titleLarge),
+                const SizedBox(height: 12),
+                SoftCard(
+                  onTap: _partner,
+                  child: Row(
+                    children: [
+                      Icon(Icons.group_add_rounded, color: p.onAccentContainer),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Add a partner / caregiver',
+                                style: text.titleMedium),
+                            Text('Share logs with another phone.',
+                                style: text.bodyMedium),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right_rounded, color: p.inkSoft),
                     ],
                   ),
                 ),

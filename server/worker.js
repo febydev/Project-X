@@ -55,6 +55,13 @@ Speak in the present tense, like a calm voice in their ear. One short instructio
 Start with the parent's own breathing. No theory at all.
 `;
 
+// Activity generator — one short, age-appropriate play idea + its benefit.
+const ACTIVITY_PROMPT = `
+You suggest ONE simple play/development activity for a baby or toddler, tailored to their age.
+Rules: exactly 1–2 sentences. Give the activity AND the developmental benefit in plain words.
+No intro, no lists, no preamble. Warm and doable with things at home. Not medical advice.
+`;
+
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "*",
@@ -90,17 +97,20 @@ export default {
     }
 
     const baby = payload.baby || {};
-    const mode = payload.mode === "calm" ? "calm" : "chat";
+    const mode = ["calm", "activity"].includes(payload.mode)
+      ? payload.mode
+      : "chat";
     const history = Array.isArray(payload.messages) ? payload.messages : [];
     const ctx = typeof payload.context === "string" ? payload.context : "";
 
-    const system =
-      PERSONA +
-      (mode === "calm" ? CALM_ADDON : "") +
+    let system = PERSONA;
+    if (mode === "calm") system += CALM_ADDON;
+    if (mode === "activity") system = ACTIVITY_PROMPT;
+    system +=
       `\nCONTEXT: The child is named ${baby.name || "the baby"}, about ${
         baby.ageMonths ?? "?"
       } months old.` +
-      (ctx
+      (ctx && mode !== "activity"
         ? `\nWHAT'S HAPPENING WITH THIS BABY (from the parent's own logs): ${ctx}\n` +
           `Use these real details to make your answer specific to THIS baby — reference their actual day when relevant. Never invent data you weren't given.`
         : "");
