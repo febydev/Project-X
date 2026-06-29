@@ -21,3 +21,8 @@ pubspec.lock
 
 # Misc
 .DS_Store
+
+# Video: keep source in video/public; ignore deps, render output, and the raw drop folder
+video/node_modules/
+video/out/
+ASSETS FOR THE VIDEO/

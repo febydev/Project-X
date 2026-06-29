@@ -1,0 +1,656 @@
+{
+  "duration": 53.812,
+  "text": "It is three in the morning, the baby is crying, and you are googling the same question you asked yesterday. There has to be a better way. Meet Mira. The calm companion that actually knows your baby. Track feeds, sleep and diapers with a single tap. Your whole day, right there, at a glance. Free. But Mira is more than a tracker. She reads your logs. So when you ask a question, she already knows Mia napped once today and last eight two hours ago, real answers. For your baby, not a textbook. Go premium to unlock your full parenting advisor. Calm mode to guide you through the hard moments. And clean reports. Ready for your next pediatrician visit. Everything private. Everything on your phone. Mira. Parenting a little lighter.",
+  "words": [
+    {
+      "start": 0.0,
+      "end": 0.12,
+      "word": "It"
+    },
+    {
+      "start": 0.12,
+      "end": 0.26,
+      "word": "is"
+    },
+    {
+      "start": 0.26,
+      "end": 0.52,
+      "word": "three"
+    },
+    {
+      "start": 0.52,
+      "end": 0.64,
+      "word": "in"
+    },
+    {
+      "start": 0.64,
+      "end": 0.72,
+      "word": "the"
+    },
+    {
+      "start": 0.72,
+      "end": 1.06,
+      "word": "morning,"
+    },
+    {
+      "start": 1.5,
+      "end": 1.62,
+      "word": "the"
+    },
+    {
+      "start": 1.62,
+      "end": 2.02,
+      "word": "baby"
+    },
+    {
+      "start": 2.02,
+      "end": 2.26,
+      "word": "is"
+    },
+    {
+      "start": 2.26,
+      "end": 2.56,
+      "word": "crying,"
+    },
+    {
+      "start": 2.8,
+      "end": 3.04,
+      "word": "and"
+    },
+    {
+      "start": 3.04,
+      "end": 3.18,
+      "word": "you"
+    },
+    {
+      "start": 3.18,
+      "end": 3.28,
+      "word": "are"
+    },
+    {
+      "start": 3.28,
+      "end": 3.8,
+      "word": "googling"
+    },
+    {
+      "start": 3.8,
+      "end": 4.0,
+      "word": "the"
+    },
+    {
+      "start": 4.0,
+      "end": 4.3,
+      "word": "same"
+    },
+    {
+      "start": 4.3,
+      "end": 4.76,
+      "word": "question"
+    },
+    {
+      "start": 4.76,
+      "end": 4.94,
+      "word": "you"
+    },
+    {
+      "start": 4.94,
+      "end": 5.1,
+      "word": "asked"
+    },
+    {
+      "start": 5.1,
+      "end": 5.72,
+      "word": "yesterday."
+    },
+    {
+      "start": 6.28,
+      "end": 6.4,
+      "word": "There"
+    },
+    {
+      "start": 6.4,
+      "end": 6.62,
+      "word": "has"
+    },
+    {
+      "start": 6.62,
+      "end": 6.82,
+      "word": "to"
+    },
+    {
+      "start": 6.82,
+      "end": 6.94,
+      "word": "be"
+    },
+    {
+      "start": 6.94,
+      "end": 7.02,
+      "word": "a"
+    },
+    {
+      "start": 7.02,
+      "end": 7.24,
+      "word": "better"
+    },
+    {
+      "start": 7.24,
+      "end": 7.5,
+      "word": "way."
+    },
+    {
+      "start": 8.28,
+      "end": 8.44,
+      "word": "Meet"
+    },
+    {
+      "start": 8.44,
+      "end": 8.88,
+      "word": "Mira."
+    },
+    {
+      "start": 9.82,
+      "end": 9.92,
+      "word": "The"
+    },
+    {
+      "start": 9.92,
+      "end": 10.22,
+      "word": "calm"
+    },
+    {
+      "start": 10.22,
+      "end": 10.76,
+      "word": "companion"
+    },
+    {
+      "start": 10.76,
+      "end": 10.96,
+      "word": "that"
+    },
+    {
+      "start": 10.96,
+      "end": 11.38,
+      "word": "actually"
+    },
+    {
+      "start": 11.38,
+      "end": 11.64,
+      "word": "knows"
+    },
+    {
+      "start": 11.64,
+      "end": 11.86,
+      "word": "your"
+    },
+    {
+      "start": 11.86,
+      "end": 12.2,
+      "word": "baby."
+    },
+    {
+      "start": 12.9,
+      "end": 13.08,
+      "word": "Track"
+    },
+    {
+      "start": 13.08,
+      "end": 13.42,
+      "word": "feeds,"
+    },
+    {
+      "start": 13.98,
+      "end": 14.16,
+      "word": "sleep"
+    },
+    {
+      "start": 14.16,
+      "end": 14.44,
+      "word": "and"
+    },
+    {
+      "start": 14.44,
+      "end": 14.76,
+      "word": "diapers"
+    },
+    {
+      "start": 14.76,
+      "end": 15.0,
+      "word": "with"
+    },
+    {
+      "start": 15.0,
+      "end": 15.12,
+      "word": "a"
+    },
+    {
+      "start": 15.12,
+      "end": 15.48,
+      "word": "single"
+    },
+    {
+      "start": 15.48,
+      "end": 15.86,
+      "word": "tap."
+    },
+    {
+      "start": 16.52,
+      "end": 16.66,
+      "word": "Your"
+    },
+    {
+      "start": 16.66,
+      "end": 16.88,
+      "word": "whole"
+    },
+    {
+      "start": 16.88,
+      "end": 17.12,
+      "word": "day,"
+    },
+    {
+      "start": 17.44,
+      "end": 17.68,
+      "word": "right"
+    },
+    {
+      "start": 17.68,
+      "end": 17.94,
+      "word": "there,"
+    },
+    {
+      "start": 18.3,
+      "end": 18.38,
+      "word": "at"
+    },
+    {
+      "start": 18.38,
+      "end": 18.5,
+      "word": "a"
+    },
+    {
+      "start": 18.5,
+      "end": 18.7,
+      "word": "glance."
+    },
+    {
+      "start": 19.44,
+      "end": 19.82,
+      "word": "Free."
+    },
+    {
+      "start": 20.54,
+      "end": 20.92,
+      "word": "But"
+    },
+    {
+      "start": 20.92,
+      "end": 21.18,
+      "word": "Mira"
+    },
+    {
+      "start": 21.18,
+      "end": 21.4,
+      "word": "is"
+    },
+    {
+      "start": 21.4,
+      "end": 21.7,
+      "word": "more"
+    },
+    {
+      "start": 21.7,
+      "end": 21.9,
+      "word": "than"
+    },
+    {
+      "start": 21.9,
+      "end": 22.0,
+      "word": "a"
+    },
+    {
+      "start": 22.0,
+      "end": 22.28,
+      "word": "tracker."
+    },
+    {
+      "start": 22.96,
+      "end": 23.14,
+      "word": "She"
+    },
+    {
+      "start": 23.14,
+      "end": 23.36,
+      "word": "reads"
+    },
+    {
+      "start": 23.36,
+      "end": 23.56,
+      "word": "your"
+    },
+    {
+      "start": 23.56,
+      "end": 23.74,
+      "word": "logs."
+    },
+    {
+      "start": 24.42,
+      "end": 24.68,
+      "word": "So"
+    },
+    {
+      "start": 24.68,
+      "end": 24.84,
+      "word": "when"
+    },
+    {
+      "start": 24.84,
+      "end": 24.96,
+      "word": "you"
+    },
+    {
+      "start": 24.96,
+      "end": 25.22,
+      "word": "ask"
+    },
+    {
+      "start": 25.22,
+      "end": 25.36,
+      "word": "a"
+    },
+    {
+      "start": 25.36,
+      "end": 25.76,
+      "word": "question,"
+    },
+    {
+      "start": 25.76,
+      "end": 26.28,
+      "word": "she"
+    },
+    {
+      "start": 26.28,
+      "end": 26.62,
+      "word": "already"
+    },
+    {
+      "start": 26.62,
+      "end": 26.98,
+      "word": "knows"
+    },
+    {
+      "start": 26.98,
+      "end": 27.22,
+      "word": "Mia"
+    },
+    {
+      "start": 27.22,
+      "end": 27.68,
+      "word": "napped"
+    },
+    {
+      "start": 27.68,
+      "end": 27.88,
+      "word": "once"
+    },
+    {
+      "start": 27.88,
+      "end": 28.22,
+      "word": "today"
+    },
+    {
+      "start": 28.22,
+      "end": 28.64,
+      "word": "and"
+    },
+    {
+      "start": 28.64,
+      "end": 28.8,
+      "word": "last"
+    },
+    {
+      "start": 28.8,
+      "end": 29.04,
+      "word": "eight"
+    },
+    {
+      "start": 29.04,
+      "end": 29.28,
+      "word": "two"
+    },
+    {
+      "start": 29.28,
+      "end": 29.46,
+      "word": "hours"
+    },
+    {
+      "start": 29.46,
+      "end": 29.78,
+      "word": "ago,"
+    },
+    {
+      "start": 30.0,
+      "end": 30.24,
+      "word": "real"
+    },
+    {
+      "start": 30.24,
+      "end": 30.62,
+      "word": "answers."
+    },
+    {
+      "start": 31.44,
+      "end": 31.7,
+      "word": "For"
+    },
+    {
+      "start": 31.7,
+      "end": 31.86,
+      "word": "your"
+    },
+    {
+      "start": 31.86,
+      "end": 32.28,
+      "word": "baby,"
+    },
+    {
+      "start": 32.7,
+      "end": 33.22,
+      "word": "not"
+    },
+    {
+      "start": 33.22,
+      "end": 33.44,
+      "word": "a"
+    },
+    {
+      "start": 33.44,
+      "end": 33.86,
+      "word": "textbook."
+    },
+    {
+      "start": 34.96,
+      "end": 35.18,
+      "word": "Go"
+    },
+    {
+      "start": 35.18,
+      "end": 35.62,
+      "word": "premium"
+    },
+    {
+      "start": 35.62,
+      "end": 35.94,
+      "word": "to"
+    },
+    {
+      "start": 35.94,
+      "end": 36.22,
+      "word": "unlock"
+    },
+    {
+      "start": 36.22,
+      "end": 36.44,
+      "word": "your"
+    },
+    {
+      "start": 36.44,
+      "end": 36.86,
+      "word": "full"
+    },
+    {
+      "start": 36.86,
+      "end": 37.36,
+      "word": "parenting"
+    },
+    {
+      "start": 37.36,
+      "end": 37.92,
+      "word": "advisor."
+    },
+    {
+      "start": 38.7,
+      "end": 39.06,
+      "word": "Calm"
+    },
+    {
+      "start": 39.06,
+      "end": 39.42,
+      "word": "mode"
+    },
+    {
+      "start": 39.42,
+      "end": 39.8,
+      "word": "to"
+    },
+    {
+      "start": 39.8,
+      "end": 40.12,
+      "word": "guide"
+    },
+    {
+      "start": 40.12,
+      "end": 40.32,
+      "word": "you"
+    },
+    {
+      "start": 40.32,
+      "end": 40.54,
+      "word": "through"
+    },
+    {
+      "start": 40.54,
+      "end": 40.7,
+      "word": "the"
+    },
+    {
+      "start": 40.7,
+      "end": 41.02,
+      "word": "hard"
+    },
+    {
+      "start": 41.02,
+      "end": 41.48,
+      "word": "moments."
+    },
+    {
+      "start": 42.24,
+      "end": 42.82,
+      "word": "And"
+    },
+    {
+      "start": 42.82,
+      "end": 43.16,
+      "word": "clean"
+    },
+    {
+      "start": 43.16,
+      "end": 43.56,
+      "word": "reports."
+    },
+    {
+      "start": 44.18,
+      "end": 44.4,
+      "word": "Ready"
+    },
+    {
+      "start": 44.4,
+      "end": 44.58,
+      "word": "for"
+    },
+    {
+      "start": 44.58,
+      "end": 44.7,
+      "word": "your"
+    },
+    {
+      "start": 44.7,
+      "end": 44.96,
+      "word": "next"
+    },
+    {
+      "start": 44.96,
+      "end": 45.66,
+      "word": "pediatrician"
+    },
+    {
+      "start": 45.66,
+      "end": 45.94,
+      "word": "visit."
+    },
+    {
+      "start": 46.7,
+      "end": 47.06,
+      "word": "Everything"
+    },
+    {
+      "start": 47.06,
+      "end": 47.48,
+      "word": "private."
+    },
+    {
+      "start": 48.1,
+      "end": 48.46,
+      "word": "Everything"
+    },
+    {
+      "start": 48.46,
+      "end": 48.62,
+      "word": "on"
+    },
+    {
+      "start": 48.62,
+      "end": 48.72,
+      "word": "your"
+    },
+    {
+      "start": 48.72,
+      "end": 49.1,
+      "word": "phone."
+    },
+    {
+      "start": 50.14,
+      "end": 50.44,
+      "word": "Mira."
+    },
+    {
+      "start": 51.56,
+      "end": 52.16,
+      "word": "Parenting"
+    },
+    {
+      "start": 52.16,
+      "end": 52.72,
+      "word": "a"
+    },
+    {
+      "start": 52.72,
+      "end": 52.94,
+      "word": "little"
+    },
+    {
+      "start": 52.94,
+      "end": 53.34,
+      "word": "lighter."
+    }
+  ]
+}
