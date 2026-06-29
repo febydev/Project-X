@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../controllers/mom_controller.dart';
 import '../../data/app_state.dart';
 import '../../models/log_entry.dart';
-import '../../models/mom_anim.dart';
+import '../../models/mom_state.dart';
 import '../../services/leap_service.dart';
 import '../../services/prediction_service.dart';
 import '../../services/stats_service.dart';
 import '../../theme/category_colors.dart';
 import '../../theme/mira_palette.dart';
-import '../../widgets/mira_character.dart';
+import '../../widgets/mom_character.dart';
 import '../../widgets/soft_card.dart';
 import '../calm/calm_mode_screen.dart';
 import '../log/add_sleep_screen.dart';
@@ -31,7 +32,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeCheckin());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _maybeCheckin();
+      // After-10pm tired greeting.
+      final hour = DateTime.now().hour;
+      if (hour >= 22 || hour < 5) {
+        MomController.trigger(MomState.tired,
+            holdFor: const Duration(seconds: 5));
+      }
+      // If a nap window is already open on launch, she points at the clock.
+      final nap = PredictionService.instance.nextNap(_state.entries);
+      if (nap.ready && (nap.etaMinutes ?? 1) <= 0) {
+        MomController.trigger(MomState.pointing);
+      }
+    });
   }
 
   void _maybeCheckin() {
@@ -50,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _tapFeed() {
     HapticFeedback.lightImpact();
     _state.addFeed();
+    MomController.trigger(MomState.celebrate);
     _toast('Feeding logged');
   }
 
@@ -143,7 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 12),
                       _CalmCard(onTap: () {
                         HapticFeedback.mediumImpact();
-                        _state.emitCharacter(MomAnim.calm);
+                        MomController.trigger(MomState.calm,
+                            holdFor: const Duration(seconds: 6));
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (_) => const CalmModeScreen()));
                       }),
@@ -311,10 +327,9 @@ class _PredictionCard extends StatelessWidget {
               ],
             ),
           ),
-          MiraCharacter(
-            events: state.character,
-            size: 84,
-            sleeping: state.runningSleep != null,
+          ValueListenableBuilder<MomState>(
+            valueListenable: MomController.state,
+            builder: (context, momState, _) => MomCharacter(state: momState),
           ),
         ],
       ),

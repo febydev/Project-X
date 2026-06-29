@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../controllers/mom_controller.dart';
 import '../../data/app_state.dart';
 import '../../models/log_entry.dart';
+import '../../models/mom_state.dart';
 import '../../theme/category_colors.dart';
 import '../../theme/mira_palette.dart';
 
@@ -63,12 +65,14 @@ class _AddSleepScreenState extends State<AddSleepScreen> {
     HapticFeedback.mediumImpact();
     if (_state.runningSleep == null) {
       await _state.startSleep();
+      MomController.trigger(MomState.shh);
       setState(() {});
     } else {
       await _state.stopSleep(details: {
         'startTags': _startTags.toList(),
         'endTags': _endTags.toList(),
       });
+      MomController.trigger(MomState.surprised);
       if (mounted) Navigator.of(context).pop();
     }
   }

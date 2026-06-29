@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../controllers/mom_controller.dart';
 import '../../data/app_state.dart';
+import '../../models/mom_state.dart';
 import '../../theme/category_colors.dart';
 import '../../theme/mira_palette.dart';
 
@@ -89,6 +91,7 @@ class _DiaperSheet extends StatelessWidget {
                   onTap: () {
                     HapticFeedback.lightImpact();
                     AppState.instance.addDiaper(o.$1);
+                    MomController.trigger(MomState.diaper);
                     Navigator.pop(context);
                   },
                   child: Container(

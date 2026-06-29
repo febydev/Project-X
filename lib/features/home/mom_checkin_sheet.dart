@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../controllers/mom_controller.dart';
 import '../../data/app_state.dart';
-import '../../models/mom_anim.dart';
+import '../../models/mom_state.dart';
 import '../../theme/mira_palette.dart';
 
 /// Gentle morning check-in for the parent. Dismissible instantly.
@@ -31,7 +32,7 @@ class _MomCheckinSheetState extends State<MomCheckinSheet> {
     HapticFeedback.lightImpact();
     AppState.instance.addCheckin(_sleep, _mood, _body);
     if (AppState.instance.lowStreak >= 3) {
-      AppState.instance.emitCharacter(MomAnim.hug);
+      MomController.trigger(MomState.hug, holdFor: const Duration(seconds: 5));
     }
     Navigator.pop(context);
   }
