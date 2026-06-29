@@ -13,9 +13,15 @@
  * Secret required: OPENROUTER_API_KEY  (get one free at https://openrouter.ai/keys)
  */
 
-// A free OpenRouter model (IDs ending in :free cost $0). Override per-request
-// with a "model" field, or set a MODEL env var.
-const DEFAULT_MODEL = "deepseek/deepseek-chat-v3-0324:free";
+// Free OpenRouter models (IDs ending in :free cost $0). The worker tries these
+// in order and uses the first that responds — so if one pool is busy, Mira
+// still answers instead of failing. Override with a "model" field or MODEL env.
+const MODELS = [
+  "openai/gpt-oss-120b:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "openai/gpt-oss-20b:free",
+];
 
 const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -86,7 +92,6 @@ export default {
     const baby = payload.baby || {};
     const mode = payload.mode === "calm" ? "calm" : "chat";
     const history = Array.isArray(payload.messages) ? payload.messages : [];
-    const model = payload.model || env.MODEL || DEFAULT_MODEL;
 
     const system =
       PERSONA +
@@ -105,48 +110,61 @@ export default {
       return json({ error: "No message." }, 400);
     }
 
-    const body = {
-      model,
-      messages,
-      temperature: 0.8,
-      max_tokens: 320,
-    };
+    const candidates = payload.model
+      ? [payload.model]
+      : env.MODEL
+      ? [env.MODEL, ...MODELS]
+      : MODELS;
 
-    try {
-      const res = await fetch(ENDPOINT, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://mira.app",
-          "X-Title": "Mira",
-        },
-        body: JSON.stringify(body),
-      });
+    let lastDetail = "";
+    let lastStatus = 502;
 
-      if (!res.ok) {
-        let detail = "";
-        try {
-          detail = await res.text();
-        } catch (_) {}
-        return json(
-          { error: `Upstream ${res.status}`, detail: detail.slice(0, 600) },
-          res.status === 429 ? 429 : 502
-        );
-      }
+    for (const model of candidates) {
+      const body = {
+        model,
+        messages,
+        temperature: 0.8,
+        max_tokens: 320,
+      };
 
-      const data = await res.json();
-      const reply = data?.choices?.[0]?.message?.content?.trim();
-
-      if (!reply) {
-        return json({
-          reply:
-            "I'm here with you. Could you tell me a little more about what's happening?",
+      try {
+        const res = await fetch(ENDPOINT, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://mira.app",
+            "X-Title": "Mira",
+          },
+          body: JSON.stringify(body),
         });
+
+        if (!res.ok) {
+          let detail = "";
+          try {
+            detail = await res.text();
+          } catch (_) {}
+          lastDetail = detail.slice(0, 600);
+          lastStatus = res.status;
+          // Busy or unavailable — try the next model in the chain.
+          continue;
+        }
+
+        const data = await res.json();
+        const reply = data?.choices?.[0]?.message?.content?.trim();
+        if (reply) return json({ reply });
+        // Empty reply — try the next model.
+        lastStatus = 502;
+        lastDetail = "empty reply";
+      } catch (_) {
+        lastStatus = 502;
+        lastDetail = "fetch failed";
       }
-      return json({ reply });
-    } catch (_) {
-      return json({ error: "Could not reach the AI." }, 502);
     }
+
+    return json(
+      { error: `Upstream ${lastStatus}`, detail: lastDetail },
+      lastStatus === 429 ? 429 : 502
+    );
   },
 };
