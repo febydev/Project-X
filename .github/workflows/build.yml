@@ -34,6 +34,9 @@ jobs:
       - name: Generate Android project files
         run: flutter create --org com.miraapp --project-name mira --platforms=android .
 
+      - name: Apply custom Android manifest (INTERNET + mic + app name)
+        run: cp ci/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+
       - name: Install dependencies
         run: flutter pub get
 

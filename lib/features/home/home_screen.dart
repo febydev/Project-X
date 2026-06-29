@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
-import '../../data/baby_store.dart';
+import '../../data/app_state.dart';
 import '../../models/log_entry.dart';
+import '../../services/tips_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_theme.dart';
 import '../../widgets/soft_card.dart';
+import '../calm/calm_mode_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,11 +18,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final BabyStore _store = BabyStore.instance;
+  final AppState _state = AppState.instance;
 
   void _log(LogType type) {
     HapticFeedback.lightImpact();
-    _store.add(type);
+    _state.addLog(type);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -26,12 +30,18 @@ class _HomeScreenState extends State<HomeScreen> {
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.ink,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          margin: const EdgeInsets.all(16),
+              borderRadius: BorderRadius.circular(16)),
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 90),
           content: Text('${type.label} logged · just now'),
         ),
       );
+  }
+
+  void _openCalm() {
+    HapticFeedback.mediumImpact();
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const CalmModeScreen()),
+    );
   }
 
   @override
@@ -39,63 +49,59 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: AnimatedBuilder(
-          animation: _store,
+        child: ListenableBuilder(
+          listenable: _state,
           builder: (context, _) {
-            final today = _store.today;
+            final today = _state.today;
+            final profile = _state.profile;
+            final ageMonths = profile?.ageInMonths ?? 0;
             return CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                    child: _Greeting(name: _store.babyName),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+                  sliver: SliverList.list(
+                    children: [
+                      _Greeting(
+                        name: _state.babyName,
+                        ageLabel: profile?.ageLabel,
+                      ),
+                      const SizedBox(height: 20),
+                      _StatusHero(lastSleep: _state.lastOf(LogType.sleep))
+                          .animate()
+                          .fadeIn(duration: 400.ms)
+                          .slideY(begin: 0.1, curve: Curves.easeOut),
+                      const SizedBox(height: 14),
+                      _CalmCard(onTap: _openCalm)
+                          .animate(delay: 100.ms)
+                          .fadeIn(duration: 400.ms),
+                      const SizedBox(height: 18),
+                      _QuickLogRow(onLog: _log)
+                          .animate(delay: 150.ms)
+                          .fadeIn(duration: 400.ms),
+                      const SizedBox(height: 18),
+                      _MiraTipCard(tip: TipsService.instance.tipForAge(ageMonths))
+                          .animate(delay: 200.ms)
+                          .fadeIn(duration: 400.ms),
+                      const SizedBox(height: 26),
+                      Text('Today',
+                          style: Theme.of(context).textTheme.titleLarge),
+                      const SizedBox(height: 12),
+                      if (today.isEmpty)
+                        const _EmptyTimeline()
+                      else
+                        ...today.take(6).map(
+                              (e) => Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: _TimelineTile(
+                                  entry: e,
+                                  onDelete: () => _state.removeLog(e),
+                                ),
+                              ),
+                            ),
+                    ],
                   ),
                 ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    child: _StatusHero(lastSleep: _store.lastSleep),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-                    child: _QuickLogRow(onLog: _log),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-                    child: const _MiraTipCard(),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 26, 20, 12),
-                    child: Text(
-                      'Today',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                ),
-                if (today.isEmpty)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
-                      child: const _EmptyTimeline(),
-                    ),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
-                    sliver: SliverList.separated(
-                      itemCount: today.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
-                      itemBuilder: (context, i) =>
-                          _TimelineTile(entry: today[i]),
-                    ),
-                  ),
               ],
             );
           },
@@ -132,8 +138,9 @@ String _clock(DateTime t) {
 }
 
 class _Greeting extends StatelessWidget {
-  const _Greeting({required this.name});
+  const _Greeting({required this.name, this.ageLabel});
   final String name;
+  final String? ageLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -151,16 +158,16 @@ class _Greeting extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          height: 46,
-          width: 46,
-          decoration: const BoxDecoration(
-            color: AppColors.sageContainer,
-            shape: BoxShape.circle,
+        if (ageLabel != null)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            decoration: BoxDecoration(
+              color: AppColors.sageContainer,
+              borderRadius: BorderRadius.circular(40),
+            ),
+            child: Text(ageLabel!,
+                style: text.labelLarge?.copyWith(color: AppColors.sageDark)),
           ),
-          alignment: Alignment.center,
-          child: const Icon(Icons.spa_rounded, color: AppColors.sageDark),
-        ),
       ],
     );
   }
@@ -173,9 +180,10 @@ class _StatusHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final gradient = Theme.of(context).extension<AppGradient>()!.linear;
     final hasData = lastSleep != null;
     final headline = hasData
-        ? 'Awake for ${_agoLabel(lastSleep!.time).replaceAll(' ago', '')}'
+        ? 'Awake ${_agoLabel(lastSleep!.time).replaceAll(' ago', '')}'
         : 'Welcome to Mira';
     final sub = hasData
         ? 'Last sleep ended ${_agoLabel(lastSleep!.time)}'
@@ -186,42 +194,31 @@ class _StatusHero extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.sage, AppColors.sageDark],
-        ),
+        gradient: gradient,
         boxShadow: const [
           BoxShadow(
-            color: Color(0x2A4E6E5D),
-            blurRadius: 30,
-            offset: Offset(0, 14),
-          ),
+              color: Color(0x2A000000), blurRadius: 28, offset: Offset(0, 14)),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(40),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.wb_twilight_rounded,
-                        color: Colors.white, size: 16),
-                    const SizedBox(width: 6),
-                    Text('Right now',
-                        style: text.labelLarge?.copyWith(color: Colors.white)),
-                  ],
-                ),
-              ),
-            ],
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(40),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.wb_twilight_rounded,
+                    color: Colors.white, size: 16),
+                const SizedBox(width: 6),
+                Text('Right now',
+                    style: text.labelLarge?.copyWith(color: Colors.white)),
+              ],
+            ),
           ),
           const SizedBox(height: 18),
           Text(headline,
@@ -230,6 +227,49 @@ class _StatusHero extends StatelessWidget {
           Text(sub,
               style: text.bodyMedium
                   ?.copyWith(color: Colors.white.withValues(alpha: 0.85))),
+        ],
+      ),
+    );
+  }
+}
+
+class _CalmCard extends StatelessWidget {
+  const _CalmCard({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return SoftCard(
+      onTap: onTap,
+      color: AppColors.apricotSoft,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      child: Row(
+        children: [
+          Container(
+            height: 46,
+            width: 46,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.7),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.spa_rounded, color: AppColors.apricot),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Tough moment right now?',
+                    style: text.titleMedium?.copyWith(color: AppColors.ink)),
+                const SizedBox(height: 2),
+                Text('Open Calm Mode — I\u2019ll walk you through it.',
+                    style: text.bodyMedium),
+              ],
+            ),
+          ),
+          const Icon(Icons.arrow_forward_ios_rounded,
+              size: 16, color: AppColors.inkSoft),
         ],
       ),
     );
@@ -285,15 +325,14 @@ class _QuickLogButtonState extends State<_QuickLogButton> {
                 height: 52,
                 width: 52,
                 decoration: BoxDecoration(
-                  color: widget.type.softColor,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(widget.type.icon,
-                    color: widget.type.color, size: 26),
+                    color: widget.type.softColor, shape: BoxShape.circle),
+                child:
+                    Icon(widget.type.icon, color: widget.type.color, size: 26),
               ),
               const SizedBox(height: 12),
               Text(widget.type.label,
-                  style: text.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                  style:
+                      text.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
             ],
           ),
         ),
@@ -303,40 +342,32 @@ class _QuickLogButtonState extends State<_QuickLogButton> {
 }
 
 class _MiraTipCard extends StatelessWidget {
-  const _MiraTipCard();
+  const _MiraTipCard({required this.tip});
+  final String tip;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return SoftCard(
-      color: AppColors.apricotSoft,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             height: 42,
             width: 42,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.7),
-              shape: BoxShape.circle,
-            ),
+            decoration: const BoxDecoration(
+                color: AppColors.sageContainer, shape: BoxShape.circle),
             child: const Icon(Icons.auto_awesome_rounded,
-                color: AppColors.apricot, size: 22),
+                color: AppColors.sageDark, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('A note from Mira',
-                    style: text.titleMedium
-                        ?.copyWith(color: AppColors.sageDark)),
+                Text('A note from Mira', style: text.titleMedium),
                 const SizedBox(height: 4),
-                Text(
-                  'Short, frequent naps can be a sign of an overtired baby. '
-                  'An earlier wind-down often leads to deeper rest.',
-                  style: text.bodyMedium?.copyWith(color: AppColors.ink),
-                ),
+                Text(tip, style: text.bodyMedium?.copyWith(color: AppColors.ink)),
               ],
             ),
           ),
@@ -356,7 +387,8 @@ class _EmptyTimeline extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
       child: Column(
         children: [
-          const Icon(Icons.nightlight_round, color: AppColors.inkFaint, size: 30),
+          const Icon(Icons.nightlight_round,
+              color: AppColors.inkFaint, size: 30),
           const SizedBox(height: 12),
           Text('Nothing logged yet today',
               style: text.titleMedium?.copyWith(color: AppColors.inkSoft)),
@@ -370,13 +402,21 @@ class _EmptyTimeline extends StatelessWidget {
 }
 
 class _TimelineTile extends StatelessWidget {
-  const _TimelineTile({required this.entry});
+  const _TimelineTile({required this.entry, this.onDelete});
   final LogEntry entry;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return SoftCard(
+      onTap: onDelete == null
+          ? null
+          : () => showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                builder: (_) => _DeleteSheet(entry: entry, onDelete: onDelete!),
+              ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
@@ -384,9 +424,7 @@ class _TimelineTile extends StatelessWidget {
             height: 44,
             width: 44,
             decoration: BoxDecoration(
-              color: entry.type.softColor,
-              shape: BoxShape.circle,
-            ),
+                color: entry.type.softColor, shape: BoxShape.circle),
             child: Icon(entry.type.icon, color: entry.type.color, size: 22),
           ),
           const SizedBox(width: 14),
@@ -403,6 +441,41 @@ class _TimelineTile extends StatelessWidget {
           Text(_clock(entry.time),
               style: text.bodyMedium?.copyWith(color: AppColors.inkFaint)),
         ],
+      ),
+    );
+  }
+}
+
+class _DeleteSheet extends StatelessWidget {
+  const _DeleteSheet({required this.entry, required this.onDelete});
+  final LogEntry entry;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: SoftCard(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('${entry.type.label} · ${_clock(entry.time)}',
+                  style: text.titleMedium),
+              const SizedBox(height: 16),
+              ListTile(
+                onTap: () {
+                  onDelete();
+                  Navigator.pop(context);
+                },
+                leading: const Icon(Icons.delete_outline_rounded,
+                    color: Colors.redAccent),
+                title: const Text('Delete this entry'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

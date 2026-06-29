@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 
-/// The kinds of things a parent logs. Phase 1 keeps it to the core three.
+/// The kinds of things a parent logs.
 enum LogType { feed, sleep, diaper }
 
 extension LogTypeX on LogType {
@@ -31,16 +31,31 @@ extension LogTypeX on LogType {
       };
 }
 
-/// A single logged event. Persistence comes in Phase 2 — for now it lives
-/// in memory so we can build and feel the UI.
+/// A single logged event, stored on-device.
 class LogEntry {
   LogEntry({
+    required this.id,
     required this.type,
     required this.time,
     this.note,
   });
 
+  final String id;
   final LogType type;
   final DateTime time;
   final String? note;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'type': type.name,
+        'time': time.toIso8601String(),
+        'note': note,
+      };
+
+  factory LogEntry.fromJson(Map<String, dynamic> json) => LogEntry(
+        id: json['id'] as String,
+        type: LogType.values.firstWhere((e) => e.name == json['type']),
+        time: DateTime.parse(json['time'] as String),
+        note: json['note'] as String?,
+      );
 }

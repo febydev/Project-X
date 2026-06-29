@@ -7,12 +7,15 @@ import 'app_colors.dart';
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get light {
+  static ThemeData light({AccentTheme? accent}) {
+    final primary = accent?.color ?? AppColors.sage;
+    final primaryDark = accent?.dark ?? AppColors.sageDark;
+
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.sage,
+      seedColor: primary,
       brightness: Brightness.light,
     ).copyWith(
-      primary: AppColors.sage,
+      primary: primary,
       onPrimary: Colors.white,
       secondary: AppColors.apricot,
       surface: AppColors.surface,
@@ -29,6 +32,7 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.sand,
       splashFactory: InkRipple.splashFactory,
       textTheme: _textTheme(baseText),
+      extensions: [AppGradient(primary, primaryDark)],
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -90,6 +94,33 @@ class AppTheme {
         fontWeight: FontWeight.w600,
         letterSpacing: 0.1,
       ),
+    );
+  }
+}
+
+/// Exposes the current accent's gradient (primary → dark) to widgets so the
+/// hero cards and buttons recolor instantly when the user changes themes.
+class AppGradient extends ThemeExtension<AppGradient> {
+  const AppGradient(this.start, this.end);
+  final Color start;
+  final Color end;
+
+  LinearGradient get linear => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [start, end],
+      );
+
+  @override
+  AppGradient copyWith({Color? start, Color? end}) =>
+      AppGradient(start ?? this.start, end ?? this.end);
+
+  @override
+  AppGradient lerp(ThemeExtension<AppGradient>? other, double t) {
+    if (other is! AppGradient) return this;
+    return AppGradient(
+      Color.lerp(start, other.start, t)!,
+      Color.lerp(end, other.end, t)!,
     );
   }
 }

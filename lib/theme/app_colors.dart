@@ -36,4 +36,20 @@ class AppColors {
   // Misc
   static const Color hairline = Color(0xFFEAE6DF);
   static const Color shadow = Color(0x14000000);
+
+  /// Premium theme accents. Index 0 is the default sage.
+  static const List<AccentTheme> accents = [
+    AccentTheme('Sage', Color(0xFF4E6E5D), Color(0xFF3C5749)),
+    AccentTheme('Twilight', Color(0xFF5C6B8A), Color(0xFF445070)),
+    AccentTheme('Clay', Color(0xFFB07A5B), Color(0xFF8A5C42)),
+    AccentTheme('Plum', Color(0xFF7E5C7A), Color(0xFF614560)),
+    AccentTheme('Ocean', Color(0xFF3E7C86), Color(0xFF2E5E66)),
+  ];
+}
+
+class AccentTheme {
+  const AccentTheme(this.name, this.color, this.dark);
+  final String name;
+  final Color color;
+  final Color dark;
 }
