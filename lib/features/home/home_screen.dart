@@ -278,7 +278,7 @@ class _PredictionCard extends StatelessWidget {
                 ] else ...[
                   Row(
                     children: [
-                      _Ring(progress: nap.ready ? nap.progress : 0),
+                      _Ring(progress: nap.ready ? nap.progress : 0.0),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(

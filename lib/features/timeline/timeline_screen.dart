@@ -329,8 +329,8 @@ class _DayColumn extends StatelessWidget {
               right: 2,
               height: e.endTime != null
                   ? ((e.endTime!.difference(e.time).inMinutes) / 60.0 * _hourPx)
-                      .clamp(4, 24 * _hourPx)
-                  : 8,
+                      .clamp(4.0, 24 * _hourPx)
+                  : 8.0,
               child: Container(
                 decoration: BoxDecoration(
                     color: CategoryColors.sleep,
