@@ -1,15 +1,23 @@
 /**
  * Mira AI proxy — Cloudflare Worker.
  *
- * Holds the Gemini API key (as a secret) so it NEVER ships inside the app.
+ * Holds the API key (as a secret) so it NEVER ships inside the app.
  * The Flutter app POSTs the conversation here; this worker adds Mira's
- * persona, calls Gemini, and returns a single reply.
+ * persona, calls the model via OpenRouter, and returns a single reply.
+ *
+ * Why OpenRouter: it works from Cloudflare (unlike calling Google's Gemini
+ * directly, which blocks Cloudflare's server regions), needs no credit card,
+ * and gives one key for many free models (DeepSeek, Llama, Gemini, etc).
  *
  * Deploy: see server/README.md
- * Secret required: GEMINI_API_KEY  (wrangler secret put GEMINI_API_KEY)
+ * Secret required: OPENROUTER_API_KEY  (get one free at https://openrouter.ai/keys)
  */
 
-const MODEL = "gemini-2.0-flash";
+// A free OpenRouter model (IDs ending in :free cost $0). Override per-request
+// with a "model" field, or set a MODEL env var.
+const DEFAULT_MODEL = "deepseek/deepseek-chat-v3-0324:free";
+
+const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
 // Mira's voice. This is the anti-generic guardrail — short, warm, human,
 // never the "It's important to remember..." filler that makes AI feel canned.
@@ -64,7 +72,7 @@ export default {
     if (request.method !== "POST") {
       return json({ error: "POST only" }, 405);
     }
-    if (!env.GEMINI_API_KEY) {
+    if (!env.OPENROUTER_API_KEY) {
       return json({ error: "Server not configured (missing key)." }, 500);
     }
 
@@ -77,7 +85,8 @@ export default {
 
     const baby = payload.baby || {};
     const mode = payload.mode === "calm" ? "calm" : "chat";
-    const messages = Array.isArray(payload.messages) ? payload.messages : [];
+    const history = Array.isArray(payload.messages) ? payload.messages : [];
+    const model = payload.model || env.MODEL || DEFAULT_MODEL;
 
     const system =
       PERSONA +
@@ -86,53 +95,48 @@ export default {
         baby.ageMonths ?? "?"
       } months old.`;
 
-    // Map Mira's history to Gemini's format. Gemini requires the first turn to
-    // be from the user, so we drop any leading model messages.
-    const contents = [];
-    for (const m of messages) {
-      const role = m.role === "model" ? "model" : "user";
-      if (contents.length === 0 && role === "model") continue;
-      contents.push({ role, parts: [{ text: String(m.text || "") }] });
+    // Build OpenAI-style messages: system first, then the conversation.
+    const messages = [{ role: "system", content: system }];
+    for (const m of history) {
+      const role = m.role === "model" ? "assistant" : "user";
+      messages.push({ role, content: String(m.text || "") });
     }
-    if (contents.length === 0) {
+    if (messages.length === 1) {
       return json({ error: "No message." }, 400);
     }
 
     const body = {
-      system_instruction: { parts: [{ text: system }] },
-      contents,
-      generationConfig: {
-        temperature: 0.8,
-        topP: 0.95,
-        maxOutputTokens: 320,
-      },
-      safetySettings: [
-        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
-        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
-        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" },
-        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
-      ],
+      model,
+      messages,
+      temperature: 0.8,
+      max_tokens: 320,
     };
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${env.GEMINI_API_KEY}`;
-
     try {
-      const res = await fetch(url, {
+      const res = await fetch(ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://mira.app",
+          "X-Title": "Mira",
+        },
         body: JSON.stringify(body),
       });
 
-      if (res.status === 429) {
-        return json({ error: "Busy line, try again shortly." }, 429);
-      }
       if (!res.ok) {
-        return json({ error: `Upstream error (${res.status}).` }, 502);
+        let detail = "";
+        try {
+          detail = await res.text();
+        } catch (_) {}
+        return json(
+          { error: `Upstream ${res.status}`, detail: detail.slice(0, 600) },
+          res.status === 429 ? 429 : 502
+        );
       }
 
       const data = await res.json();
-      const reply =
-        data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("").trim();
+      const reply = data?.choices?.[0]?.message?.content?.trim();
 
       if (!reply) {
         return json({
