@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../data/app_state.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/mira_palette.dart';
 import '../../widgets/soft_card.dart';
 import '../paywall/paywall_screen.dart';
 
@@ -50,9 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
-    if (result != null) {
-      await _state.setProxyUrl(result);
-    }
+    if (result != null) await _state.setProxyUrl(result);
   }
 
   Future<void> _editProfile() async {
@@ -83,7 +82,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _pickAccent(int i) {
+  void _pickTheme(int i) {
     if (i != 0 && !_state.premium) {
       Navigator.of(context)
           .push(MaterialPageRoute(builder: (_) => const PaywallScreen()));
@@ -96,6 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -118,11 +118,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Container(
                         height: 50,
                         width: 50,
-                        decoration: const BoxDecoration(
-                            color: AppColors.sageContainer,
-                            shape: BoxShape.circle),
-                        child: const Icon(Icons.child_care_rounded,
-                            color: AppColors.sageDark),
+                        decoration: BoxDecoration(
+                            color: p.accentContainer, shape: BoxShape.circle),
+                        child: Icon(Icons.child_care_rounded,
+                            color: p.onAccentContainer),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -131,19 +130,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           children: [
                             Text(profile?.name ?? 'Your baby',
                                 style: text.titleLarge),
-                            Text(profile?.ageLabel ?? '',
-                                style: text.bodyMedium),
+                            Text(profile?.ageLabel ?? '', style: text.bodyMedium),
                           ],
                         ),
                       ),
-                      const Icon(Icons.edit_rounded,
-                          size: 18, color: AppColors.inkSoft),
+                      Icon(Icons.edit_rounded, size: 18, color: p.inkSoft),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
 
-                // Premium status
                 if (!_state.premium)
                   _PremiumBanner(onTap: () {
                     Navigator.of(context).push(MaterialPageRoute(
@@ -151,15 +147,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   })
                 else
                   SoftCard(
-                    color: AppColors.sageContainer,
+                    color: p.accentContainer,
                     child: Row(
                       children: [
-                        const Icon(Icons.verified_rounded,
-                            color: AppColors.sageDark),
+                        Icon(Icons.verified_rounded,
+                            color: p.onAccentContainer),
                         const SizedBox(width: 12),
                         Text('Mira Premium is active',
                             style: text.titleMedium
-                                ?.copyWith(color: AppColors.sageDark)),
+                                ?.copyWith(color: p.onAccentContainer)),
                       ],
                     ),
                   ),
@@ -170,15 +166,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 12),
                 SoftCard(
                   child: Wrap(
-                    spacing: 14,
-                    runSpacing: 14,
+                    spacing: 16,
+                    runSpacing: 16,
                     children: [
-                      for (int i = 0; i < AppColors.accents.length; i++)
-                        _AccentDot(
-                          accent: AppColors.accents[i],
+                      for (int i = 0; i < MiraPalette.all.length; i++)
+                        _ThemeDot(
+                          palette: MiraPalette.all[i],
                           selected: _state.accent == i,
                           locked: i != 0 && !_state.premium,
-                          onTap: () => _pickAccent(i),
+                          onTap: () => _pickTheme(i),
                         ),
                     ],
                   ),
@@ -192,7 +188,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: _editProxy,
                   child: Row(
                     children: [
-                      const Icon(Icons.cable_rounded, color: AppColors.sageDark),
+                      Icon(Icons.cable_rounded, color: p.onAccentContainer),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
@@ -205,15 +201,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   : 'Connected',
                               style: text.bodyMedium?.copyWith(
                                 color: _state.proxyUrl.isEmpty
-                                    ? AppColors.apricot
-                                    : AppColors.sage,
+                                    ? const Color(0xFFD08A4E)
+                                    : p.accent,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const Icon(Icons.chevron_right_rounded,
-                          color: AppColors.inkSoft),
+                      Icon(Icons.chevron_right_rounded, color: p.inkSoft),
                     ],
                   ),
                 ),
@@ -221,17 +216,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SoftCard(
                   child: Row(
                     children: [
-                      const Icon(Icons.insights_rounded,
-                          color: AppColors.sageDark),
+                      Icon(Icons.insights_rounded, color: p.onAccentContainer),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Let Mira read my logs', style: text.titleMedium),
+                            Text('Let Mira read my logs',
+                                style: text.titleMedium),
                             Text(
-                              'Gives advice tailored to your baby\u2019s real day.',
-                              style: text.bodyMedium),
+                                'Gives advice tailored to your baby\u2019s real day.',
+                                style: text.bodyMedium),
                           ],
                         ),
                       ),
@@ -243,16 +238,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
+
+                // About / privacy
                 SoftCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        children: const [
+                        children: [
                           Icon(Icons.lock_outline_rounded,
-                              color: AppColors.sageDark, size: 20),
-                          SizedBox(width: 10),
-                          Text('Private by design'),
+                              color: p.onAccentContainer, size: 20),
+                          const SizedBox(width: 10),
+                          const Text('Private by design'),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -266,8 +263,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         'Mira offers general guidance, not medical advice. '
                         'Always consult your pediatrician for health concerns.',
                         style: text.bodyMedium?.copyWith(
-                            fontStyle: FontStyle.italic,
-                            color: AppColors.inkFaint),
+                            fontStyle: FontStyle.italic, color: p.inkFaint),
                       ),
                     ],
                   ),
@@ -282,16 +278,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Test: unlock Premium', style: text.titleMedium),
+                            Text('Test: unlock Premium',
+                                style: text.titleMedium),
                             Text('Temporary switch until billing is added.',
                                 style: text.bodyMedium),
                           ],
                         ),
                       ),
                       Switch(
-                        value: _state.premium,
-                        onChanged: (v) => _state.setPremium(v),
-                      ),
+                          value: _state.premium,
+                          onChanged: (v) => _state.setPremium(v)),
                     ],
                   ),
                 ),
@@ -330,48 +326,58 @@ class _PremiumBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Unlock Mira Premium', style: text.titleMedium),
+                Text('Unlock Mira Premium',
+                    style: text.titleMedium
+                        ?.copyWith(color: const Color(0xFF3A2E26))),
                 Text('Unlimited chat, Calm Mode, reports & themes.',
-                    style: text.bodyMedium),
+                    style: text.bodyMedium
+                        ?.copyWith(color: const Color(0xFF6E5C4A))),
               ],
             ),
           ),
           const Icon(Icons.arrow_forward_ios_rounded,
-              size: 16, color: AppColors.inkSoft),
+              size: 16, color: Color(0xFF6E5C4A)),
         ],
       ),
     );
   }
 }
 
-class _AccentDot extends StatelessWidget {
-  const _AccentDot({
-    required this.accent,
+class _ThemeDot extends StatelessWidget {
+  const _ThemeDot({
+    required this.palette,
     required this.selected,
     required this.locked,
     required this.onTap,
   });
-  final AccentTheme accent;
+  final MiraPalette palette;
   final bool selected;
   final bool locked;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
     return GestureDetector(
       onTap: onTap,
       child: Column(
         children: [
           Container(
-            height: 48,
-            width: 48,
+            height: 52,
+            width: 52,
             decoration: BoxDecoration(
-              color: accent.color,
+              gradient: palette.gradient,
               shape: BoxShape.circle,
               border: Border.all(
-                color: selected ? AppColors.ink : Colors.transparent,
+                color: selected ? p.ink : Colors.transparent,
                 width: 2.5,
               ),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4)),
+              ],
             ),
             child: locked
                 ? const Icon(Icons.lock_rounded, color: Colors.white, size: 18)
@@ -380,7 +386,7 @@ class _AccentDot extends StatelessWidget {
                     : null),
           ),
           const SizedBox(height: 6),
-          Text(accent.name,
+          Text(palette.name,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontSize: 11,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w400)),

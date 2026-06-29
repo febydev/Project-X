@@ -3,7 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../data/app_state.dart';
 import '../../models/baby_profile.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/mira_palette.dart';
 import '../../widgets/mira_logo.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/soft_card.dart';
@@ -51,10 +51,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 500),
-        pageBuilder: (_, a, __) => FadeTransition(
-          opacity: a,
-          child: const AppShell(),
-        ),
+        pageBuilder: (_, a, __) =>
+            FadeTransition(opacity: a, child: const AppShell()),
       ),
     );
   }
@@ -62,6 +60,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -83,7 +82,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Text(
                 'A calm companion for the beautiful, exhausting first years. '
                 'Let\u2019s start with your little one.',
-                style: text.bodyLarge?.copyWith(color: AppColors.inkSoft),
+                style: text.bodyLarge?.copyWith(color: p.inkSoft),
               )
                   .animate(delay: 350.ms)
                   .fadeIn(duration: 500.ms)
@@ -96,9 +95,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   onChanged: (_) => setState(() {}),
                   textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(
-                    hintText: 'e.g. Mia',
-                    border: InputBorder.none,
-                  ),
+                      hintText: 'e.g. Mia', border: InputBorder.none),
                   style: text.titleLarge,
                 ),
               )
@@ -118,14 +115,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ? 'Tap to choose'
                               : '${_birthDate!.day}/${_birthDate!.month}/${_birthDate!.year}',
                           style: text.titleLarge?.copyWith(
-                            color: _birthDate == null
-                                ? AppColors.inkFaint
-                                : AppColors.ink,
+                            color: _birthDate == null ? p.inkFaint : p.ink,
                           ),
                         ),
                       ),
-                      const Icon(Icons.calendar_today_rounded,
-                          color: AppColors.inkSoft, size: 20),
+                      Icon(Icons.calendar_today_rounded,
+                          color: p.inkSoft, size: 20),
                     ],
                   ),
                 ),
@@ -149,8 +144,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             'Mira can read your logs to give advice tailored to '
                             'your baby. It stays on your phone and is only used to '
                             'answer you — never sold or shared.',
-                            style: text.bodyMedium
-                                ?.copyWith(color: AppColors.inkSoft),
+                            style: text.bodyMedium?.copyWith(color: p.inkSoft),
                           ),
                         ],
                       ),
@@ -175,7 +169,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Center(
                 child: Text(
                   'Everything stays private on your phone.',
-                  style: text.bodyMedium?.copyWith(color: AppColors.inkFaint),
+                  style: text.bodyMedium?.copyWith(color: p.inkFaint),
                 ),
               ).animate(delay: 950.ms).fadeIn(duration: 500.ms),
             ],
@@ -194,6 +188,7 @@ class _Field extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return SoftCard(
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 16),
       child: Column(
@@ -201,7 +196,7 @@ class _Field extends StatelessWidget {
         children: [
           Text(label.toUpperCase(),
               style: text.labelLarge?.copyWith(
-                  color: AppColors.inkFaint, fontSize: 11, letterSpacing: 1)),
+                  color: p.inkFaint, fontSize: 11, letterSpacing: 1)),
           const SizedBox(height: 2),
           child,
         ],

@@ -5,8 +5,8 @@ import '../../data/app_state.dart';
 import '../../models/chat_message.dart';
 import '../../services/ai_service.dart';
 import '../../services/speech_service.dart';
-import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/mira_palette.dart';
 import '../paywall/paywall_screen.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -41,8 +41,7 @@ class _ChatScreenState extends State<ChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) {
         _scroll.animateTo(_scroll.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut);
+            duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
       }
     });
   }
@@ -50,12 +49,10 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _send([String? preset]) async {
     final txt = (preset ?? _controller.text).trim();
     if (txt.isEmpty || _sending) return;
-
     if (!_state.canSendMessage()) {
       _openPaywall();
       return;
     }
-
     HapticFeedback.lightImpact();
     _controller.clear();
     await _state.addChatMessage(ChatMessage(text: txt, fromMira: false));
@@ -73,9 +70,9 @@ class _ChatScreenState extends State<ChatScreen> {
     );
     if (!mounted) return;
     setState(() => _sending = false);
-
     await _state.addChatMessage(ChatMessage(
-      text: result.ok ? result.reply! : (result.error ?? 'Something went wrong.'),
+      text:
+          result.ok ? result.reply! : (result.error ?? 'Something went wrong.'),
       fromMira: true,
     ));
     _scrollToEnd();
@@ -119,8 +116,8 @@ class _ChatScreenState extends State<ChatScreen> {
             return Column(
               children: [
                 _Header(
-                  remaining: _state.premium ? null : _state.remainingFreeMessages,
-                ),
+                    remaining:
+                        _state.premium ? null : _state.remainingFreeMessages),
                 Expanded(
                   child: messages.isEmpty
                       ? _Welcome(onPick: _send)
@@ -160,6 +157,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
       child: Row(
@@ -169,8 +167,7 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Mira', style: text.displaySmall),
-                Text('Calm, judgement-free guidance.',
-                    style: text.bodyMedium),
+                Text('Calm, judgement-free guidance.', style: text.bodyMedium),
               ],
             ),
           ),
@@ -178,12 +175,12 @@ class _Header extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               decoration: BoxDecoration(
-                color: AppColors.sageContainer,
+                color: p.accentContainer,
                 borderRadius: BorderRadius.circular(40),
               ),
               child: Text('$remaining left today',
                   style: text.labelLarge
-                      ?.copyWith(color: AppColors.sageDark, fontSize: 11)),
+                      ?.copyWith(color: p.onAccentContainer, fontSize: 11)),
             ),
         ],
       ),
@@ -198,6 +195,7 @@ class _Welcome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return ListView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
@@ -206,10 +204,10 @@ class _Welcome extends StatelessWidget {
         Container(
           height: 64,
           width: 64,
-          decoration: const BoxDecoration(
-              color: AppColors.sageContainer, shape: BoxShape.circle),
-          child: const Icon(Icons.auto_awesome_rounded,
-              color: AppColors.sageDark, size: 30),
+          decoration:
+              BoxDecoration(color: p.accentContainer, shape: BoxShape.circle),
+          child: Icon(Icons.auto_awesome_rounded,
+              color: p.onAccentContainer, size: 30),
         ),
         const SizedBox(height: 18),
         Text('How can I help right now?', style: text.headlineSmall),
@@ -238,21 +236,21 @@ class _SuggestionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: p.card,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.hairline),
+          border: Border.all(color: p.hairline),
         ),
         child: Row(
           children: [
             Expanded(child: Text(label, style: text.titleMedium)),
-            const Icon(Icons.north_east_rounded,
-                size: 16, color: AppColors.inkFaint),
+            Icon(Icons.north_east_rounded, size: 16, color: p.inkFaint),
           ],
         ),
       ),
@@ -267,6 +265,7 @@ class _Bubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     final fromMira = message.fromMira;
     final gradient = Theme.of(context).extension<AppGradient>()!.linear;
     return Align(
@@ -274,10 +273,10 @@ class _Bubble extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.78),
+        constraints:
+            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
         decoration: BoxDecoration(
-          color: fromMira ? Colors.white : null,
+          color: fromMira ? p.card : null,
           gradient: fromMira ? null : gradient,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(20),
@@ -285,15 +284,17 @@ class _Bubble extends StatelessWidget {
             bottomLeft: Radius.circular(fromMira ? 4 : 20),
             bottomRight: Radius.circular(fromMira ? 20 : 4),
           ),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-                color: AppColors.shadow, blurRadius: 14, offset: Offset(0, 6)),
+                color: Colors.black.withValues(alpha: p.isDark ? 0.3 : 0.06),
+                blurRadius: 14,
+                offset: const Offset(0, 6)),
           ],
         ),
         child: Text(
           message.text,
           style: text.bodyLarge?.copyWith(
-            color: fromMira ? AppColors.ink : Colors.white,
+            color: fromMira ? p.ink : Colors.white,
             height: 1.4,
           ),
         ),
@@ -307,24 +308,23 @@ class _TypingBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: p.card,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-                color: AppColors.shadow, blurRadius: 14, offset: Offset(0, 6)),
+                color: Colors.black.withValues(alpha: p.isDark ? 0.3 : 0.06),
+                blurRadius: 14,
+                offset: const Offset(0, 6)),
           ],
         ),
-        child: const SizedBox(
-          height: 10,
-          width: 40,
-          child: _Dots(),
-        ),
+        child: const SizedBox(height: 10, width: 40, child: _Dots()),
       ),
     );
   }
@@ -337,9 +337,9 @@ class _Dots extends StatefulWidget {
 }
 
 class _DotsState extends State<_Dots> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
-        ..repeat();
+  late final AnimationController _c = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 900))
+    ..repeat();
 
   @override
   void dispose() {
@@ -349,6 +349,7 @@ class _DotsState extends State<_Dots> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final color = context.palette.inkFaint;
     return AnimatedBuilder(
       animation: _c,
       builder: (context, _) {
@@ -362,8 +363,8 @@ class _DotsState extends State<_Dots> with SingleTickerProviderStateMixin {
               child: Container(
                 height: 8,
                 width: 8,
-                decoration: const BoxDecoration(
-                    color: AppColors.inkFaint, shape: BoxShape.circle),
+                decoration:
+                    BoxDecoration(color: color, shape: BoxShape.circle),
               ),
             );
           }),
@@ -390,22 +391,23 @@ class _InputBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
     final primary = Theme.of(context).colorScheme.primary;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
-      decoration: const BoxDecoration(
-        color: AppColors.sand,
-        border: Border(top: BorderSide(color: AppColors.hairline)),
+      decoration: BoxDecoration(
+        color: p.background,
+        border: Border(top: BorderSide(color: p.hairline)),
       ),
       child: Row(
         children: [
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: p.card,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: listening ? primary : AppColors.hairline,
+                  color: listening ? primary : p.hairline,
                   width: listening ? 1.5 : 1,
                 ),
               ),
@@ -430,7 +432,7 @@ class _InputBar extends StatelessWidget {
                     onPressed: onMic,
                     icon: Icon(
                       listening ? Icons.stop_rounded : Icons.mic_rounded,
-                      color: listening ? primary : AppColors.inkSoft,
+                      color: listening ? primary : p.inkSoft,
                     ),
                   ),
                 ],
@@ -443,11 +445,9 @@ class _InputBar extends StatelessWidget {
             child: Container(
               height: 50,
               width: 50,
-              decoration: BoxDecoration(
-                color: primary,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.arrow_upward_rounded, color: Colors.white),
+              decoration: BoxDecoration(color: primary, shape: BoxShape.circle),
+              child:
+                  const Icon(Icons.arrow_upward_rounded, color: Colors.white),
             ),
           ),
         ],

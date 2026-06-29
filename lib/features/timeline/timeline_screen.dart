@@ -6,6 +6,7 @@ import '../../data/app_state.dart';
 import '../../models/log_entry.dart';
 import '../../services/pdf_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/mira_palette.dart';
 import '../../widgets/soft_card.dart';
 import '../paywall/paywall_screen.dart';
 
@@ -22,9 +23,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   Future<void> _exportPdf() async {
     if (!_state.premium) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const PaywallScreen()),
-      );
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => const PaywallScreen()));
       return;
     }
     final profile = _state.profile;
@@ -108,7 +108,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           child: Center(
                             child: Text('No history yet.',
                                 style: text.titleMedium
-                                    ?.copyWith(color: AppColors.inkSoft)),
+                                    ?.copyWith(color: context.palette.inkSoft)),
                           ),
                         )
                       else
@@ -174,6 +174,7 @@ class _ExportCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return SoftCard(
       onTap: exporting ? null : onTap,
       child: Row(
@@ -181,16 +182,16 @@ class _ExportCard extends StatelessWidget {
           Container(
             height: 46,
             width: 46,
-            decoration: const BoxDecoration(
-                color: AppColors.sageContainer, shape: BoxShape.circle),
+            decoration:
+                BoxDecoration(color: p.accentContainer, shape: BoxShape.circle),
             child: exporting
-                ? const Padding(
-                    padding: EdgeInsets.all(12),
+                ? Padding(
+                    padding: const EdgeInsets.all(12),
                     child: CircularProgressIndicator(
-                        strokeWidth: 2.4, color: AppColors.sageDark),
+                        strokeWidth: 2.4, color: p.onAccentContainer),
                   )
-                : const Icon(Icons.picture_as_pdf_rounded,
-                    color: AppColors.sageDark),
+                : Icon(Icons.picture_as_pdf_rounded,
+                    color: p.onAccentContainer),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -212,8 +213,8 @@ class _ExportCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(40),
               ),
               child: Text('Premium',
-                  style: text.labelLarge
-                      ?.copyWith(color: AppColors.apricot, fontSize: 11)),
+                  style: text.labelLarge?.copyWith(
+                      color: const Color(0xFF9A5E2A), fontSize: 11)),
             ),
         ],
       ),
@@ -228,6 +229,7 @@ class _Row extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return SoftCard(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
@@ -242,7 +244,7 @@ class _Row extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(child: Text(entry.type.label, style: text.titleMedium)),
           Text(DateFormat('h:mm a').format(entry.time),
-              style: text.bodyMedium?.copyWith(color: AppColors.inkFaint)),
+              style: text.bodyMedium?.copyWith(color: p.inkFaint)),
         ],
       ),
     );

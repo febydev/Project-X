@@ -5,8 +5,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../data/app_state.dart';
 import '../../models/log_entry.dart';
 import '../../services/tips_service.dart';
-import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/mira_palette.dart';
 import '../../widgets/soft_card.dart';
 import '../calm/calm_mode_screen.dart';
 
@@ -23,25 +23,26 @@ class _HomeScreenState extends State<HomeScreen> {
   void _log(LogType type) {
     HapticFeedback.lightImpact();
     _state.addLog(type);
+    final p = context.palette;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.ink,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16)),
+          backgroundColor: p.isDark ? p.accentDark : p.ink,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 90),
-          content: Text('${type.label} logged · just now'),
+          content: Text('${type.label} logged · just now',
+              style: const TextStyle(color: Colors.white)),
         ),
       );
   }
 
   void _openCalm() {
     HapticFeedback.mediumImpact();
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const CalmModeScreen()),
-    );
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const CalmModeScreen()));
   }
 
   @override
@@ -63,9 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   sliver: SliverList.list(
                     children: [
                       _Greeting(
-                        name: _state.babyName,
-                        ageLabel: profile?.ageLabel,
-                      ),
+                          name: _state.babyName, ageLabel: profile?.ageLabel),
                       const SizedBox(height: 20),
                       _StatusHero(lastSleep: _state.lastOf(LogType.sleep))
                           .animate()
@@ -80,7 +79,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           .animate(delay: 150.ms)
                           .fadeIn(duration: 400.ms),
                       const SizedBox(height: 18),
-                      _MiraTipCard(tip: TipsService.instance.tipForAge(ageMonths))
+                      _MiraTipCard(
+                              tip: TipsService.instance.tipForAge(ageMonths))
                           .animate(delay: 200.ms)
                           .fadeIn(duration: 400.ms),
                       const SizedBox(height: 26),
@@ -94,9 +94,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               (e) => Padding(
                                 padding: const EdgeInsets.only(bottom: 10),
                                 child: _TimelineTile(
-                                  entry: e,
-                                  onDelete: () => _state.removeLog(e),
-                                ),
+                                    entry: e,
+                                    onDelete: () => _state.removeLog(e)),
                               ),
                             ),
                     ],
@@ -145,14 +144,14 @@ class _Greeting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return Row(
       children: [
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_greetingForNow(),
-                  style: text.bodyMedium?.copyWith(color: AppColors.inkSoft)),
+              Text(_greetingForNow(), style: text.bodyMedium),
               const SizedBox(height: 2),
               Text('How is $name?', style: text.headlineMedium),
             ],
@@ -162,11 +161,11 @@ class _Greeting extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             decoration: BoxDecoration(
-              color: AppColors.sageContainer,
+              color: p.accentContainer,
               borderRadius: BorderRadius.circular(40),
             ),
             child: Text(ageLabel!,
-                style: text.labelLarge?.copyWith(color: AppColors.sageDark)),
+                style: text.labelLarge?.copyWith(color: p.onAccentContainer)),
           ),
       ],
     );
@@ -240,36 +239,32 @@ class _CalmCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return SoftCard(
       onTap: onTap,
-      color: AppColors.apricotSoft,
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       child: Row(
         children: [
           Container(
             height: 46,
             width: 46,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.7),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.spa_rounded, color: AppColors.apricot),
+            decoration:
+                BoxDecoration(color: p.accentContainer, shape: BoxShape.circle),
+            child: Icon(Icons.spa_rounded, color: p.onAccentContainer),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Tough moment right now?',
-                    style: text.titleMedium?.copyWith(color: AppColors.ink)),
+                Text('Tough moment right now?', style: text.titleMedium),
                 const SizedBox(height: 2),
                 Text('Open Calm Mode — I\u2019ll walk you through it.',
                     style: text.bodyMedium),
               ],
             ),
           ),
-          const Icon(Icons.arrow_forward_ios_rounded,
-              size: 16, color: AppColors.inkSoft),
+          Icon(Icons.arrow_forward_ios_rounded, size: 16, color: p.inkFaint),
         ],
       ),
     );
@@ -285,7 +280,8 @@ class _QuickLogRow extends StatelessWidget {
     return Row(
       children: [
         for (final type in LogType.values) ...[
-          Expanded(child: _QuickLogButton(type: type, onTap: () => onLog(type))),
+          Expanded(
+              child: _QuickLogButton(type: type, onTap: () => onLog(type))),
           if (type != LogType.values.last) const SizedBox(width: 12),
         ],
       ],
@@ -348,6 +344,7 @@ class _MiraTipCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return SoftCard(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,10 +352,10 @@ class _MiraTipCard extends StatelessWidget {
           Container(
             height: 42,
             width: 42,
-            decoration: const BoxDecoration(
-                color: AppColors.sageContainer, shape: BoxShape.circle),
-            child: const Icon(Icons.auto_awesome_rounded,
-                color: AppColors.sageDark, size: 22),
+            decoration:
+                BoxDecoration(color: p.accentContainer, shape: BoxShape.circle),
+            child: Icon(Icons.auto_awesome_rounded,
+                color: p.onAccentContainer, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -367,7 +364,7 @@ class _MiraTipCard extends StatelessWidget {
               children: [
                 Text('A note from Mira', style: text.titleMedium),
                 const SizedBox(height: 4),
-                Text(tip, style: text.bodyMedium?.copyWith(color: AppColors.ink)),
+                Text(tip, style: text.bodyLarge),
               ],
             ),
           ),
@@ -383,15 +380,15 @@ class _EmptyTimeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return SoftCard(
       padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
       child: Column(
         children: [
-          const Icon(Icons.nightlight_round,
-              color: AppColors.inkFaint, size: 30),
+          Icon(Icons.nightlight_round, color: p.inkFaint, size: 30),
           const SizedBox(height: 12),
           Text('Nothing logged yet today',
-              style: text.titleMedium?.copyWith(color: AppColors.inkSoft)),
+              style: text.titleMedium?.copyWith(color: p.inkSoft)),
           const SizedBox(height: 4),
           Text('Tap Feed, Sleep or Diaper to start.',
               style: text.bodyMedium, textAlign: TextAlign.center),
@@ -409,6 +406,7 @@ class _TimelineTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return SoftCard(
       onTap: onDelete == null
           ? null
@@ -439,7 +437,7 @@ class _TimelineTile extends StatelessWidget {
             ),
           ),
           Text(_clock(entry.time),
-              style: text.bodyMedium?.copyWith(color: AppColors.inkFaint)),
+              style: text.bodyMedium?.copyWith(color: p.inkFaint)),
         ],
       ),
     );

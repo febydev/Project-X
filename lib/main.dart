@@ -3,20 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import 'data/app_state.dart';
+import 'features/intro/intro_video_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/shell/app_shell.dart';
-import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
+import 'theme/mira_palette.dart';
 import 'widgets/mira_logo.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-    ),
-  );
   runApp(const MiraApp());
 }
 
@@ -28,12 +23,21 @@ class MiraApp extends StatelessWidget {
     return ListenableBuilder(
       listenable: AppState.instance,
       builder: (context, _) {
-        final accent = AppColors.accents[
-            AppState.instance.accent.clamp(0, AppColors.accents.length - 1)];
+        final palette = MiraPalette.all[
+            AppState.instance.accent.clamp(0, MiraPalette.all.length - 1)];
+        SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness:
+                palette.isDark ? Brightness.light : Brightness.dark,
+            statusBarBrightness:
+                palette.isDark ? Brightness.dark : Brightness.light,
+          ),
+        );
         return MaterialApp(
           title: 'Mira',
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.light(accent: accent),
+          theme: AppTheme.fromPalette(palette),
           home: const _Bootstrap(),
         );
       },
@@ -41,8 +45,8 @@ class MiraApp extends StatelessWidget {
   }
 }
 
-/// Loads on-device state, shows a brief splash, then routes to onboarding
-/// or the main app.
+/// Loads on-device state, shows a brief splash, then routes to the intro
+/// video (first launch) → onboarding, or straight to the app.
 class _Bootstrap extends StatefulWidget {
   const _Bootstrap();
 
@@ -52,6 +56,7 @@ class _Bootstrap extends StatefulWidget {
 
 class _BootstrapState extends State<_Bootstrap> {
   bool _ready = false;
+  bool _introDone = false;
 
   @override
   void initState() {
@@ -61,17 +66,21 @@ class _BootstrapState extends State<_Bootstrap> {
 
   Future<void> _load() async {
     await AppState.instance.load();
-    // Small minimum splash so the logo animation can breathe.
-    await Future<void>.delayed(const Duration(milliseconds: 900));
+    await Future<void>.delayed(const Duration(milliseconds: 700));
     if (mounted) setState(() => _ready = true);
   }
 
   @override
   Widget build(BuildContext context) {
     if (!_ready) return const _Splash();
-    return AppState.instance.hasProfile
-        ? const AppShell()
-        : const OnboardingScreen();
+
+    final hasProfile = AppState.instance.hasProfile;
+    if (hasProfile) return const AppShell();
+
+    if (!_introDone) {
+      return IntroVideoScreen(onDone: () => setState(() => _introDone = true));
+    }
+    return const OnboardingScreen();
   }
 }
 
@@ -98,8 +107,7 @@ class _Splash extends StatelessWidget {
                 .animate()
                 .fadeIn(duration: 700.ms),
             const SizedBox(height: 4),
-            Text('your calm companion',
-                    style: text.bodyMedium?.copyWith(color: AppColors.inkSoft))
+            Text('your calm companion', style: text.bodyMedium)
                 .animate()
                 .fadeIn(delay: 300.ms, duration: 700.ms),
           ],

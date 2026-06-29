@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../theme/app_colors.dart';
+import '../../theme/mira_palette.dart';
 import '../../widgets/glass_container.dart';
 import '../chat/chat_screen.dart';
 import '../home/home_screen.dart';
@@ -85,6 +85,7 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
+    final faint = context.palette.inkFaint;
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -106,7 +107,7 @@ class _NavItem extends StatelessWidget {
               Icon(
                 def.icon,
                 size: 24,
-                color: selected ? primary : AppColors.inkFaint,
+                color: selected ? primary : faint,
               ),
               const SizedBox(height: 4),
               AnimatedDefaultTextStyle(
@@ -114,7 +115,7 @@ class _NavItem extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: selected ? primary : AppColors.inkFaint,
+                  color: selected ? primary : faint,
                 ),
                 child: Text(def.label),
               ),

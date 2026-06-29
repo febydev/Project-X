@@ -2,28 +2,35 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../theme/mira_palette.dart';
+
 /// A frosted-glass surface (iOS-style). Used sparingly — only the floating
 /// nav bar — because live blur is GPU-heavy. One blur layer keeps even
-/// average phones smooth.
+/// average phones smooth. Tint adapts to the active palette.
 class GlassContainer extends StatelessWidget {
   const GlassContainer({
     super.key,
     required this.child,
     this.radius = 30,
     this.blur = 18,
-    this.opacity = 0.72,
     this.padding = EdgeInsets.zero,
   });
 
   final Widget child;
   final double radius;
   final double blur;
-  final double opacity;
   final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     final borderRadius = BorderRadius.circular(radius);
+    final tint = palette.isDark
+        ? palette.surface.withValues(alpha: 0.72)
+        : Colors.white.withValues(alpha: 0.72);
+    final borderColor = palette.isDark
+        ? Colors.white.withValues(alpha: 0.10)
+        : Colors.white.withValues(alpha: 0.5);
     return ClipRRect(
       borderRadius: borderRadius,
       child: BackdropFilter(
@@ -31,17 +38,14 @@ class GlassContainer extends StatelessWidget {
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: opacity),
+            color: tint,
             borderRadius: borderRadius,
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.5),
-              width: 1,
-            ),
-            boxShadow: const [
+            border: Border.all(color: borderColor, width: 1),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x1A000000),
+                color: Colors.black.withValues(alpha: palette.isDark ? 0.4 : 0.1),
                 blurRadius: 24,
-                offset: Offset(0, 8),
+                offset: const Offset(0, 8),
               ),
             ],
           ),

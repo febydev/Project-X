@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../data/app_state.dart';
-import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/mira_palette.dart';
 import '../../widgets/mira_logo.dart';
 import '../../widgets/primary_button.dart';
 
@@ -26,8 +26,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
   ];
 
   void _subscribe() {
-    // Billing is wired up later (needs a Play Console). For now this unlocks
-    // premium locally so everything is testable end-to-end.
     AppState.instance.setPremium(true);
     Navigator.of(context).pop();
   }
@@ -35,6 +33,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     final gradient = Theme.of(context).extension<AppGradient>()!.linear;
     return Scaffold(
       body: SafeArea(
@@ -63,7 +62,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   Text(
                     'Peace of mind, whenever you need it.',
                     textAlign: TextAlign.center,
-                    style: text.bodyLarge?.copyWith(color: AppColors.inkSoft),
+                    style: text.bodyLarge?.copyWith(color: p.inkSoft),
                   ),
                   const SizedBox(height: 28),
                   ..._features.map((f) => Padding(
@@ -73,17 +72,16 @@ class _PaywallScreenState extends State<PaywallScreen> {
                             Container(
                               height: 38,
                               width: 38,
-                              decoration: const BoxDecoration(
-                                  color: AppColors.sageContainer,
+                              decoration: BoxDecoration(
+                                  color: p.accentContainer,
                                   shape: BoxShape.circle),
                               child: Icon(f.$2,
-                                  color: AppColors.sageDark, size: 20),
+                                  color: p.onAccentContainer, size: 20),
                             ),
                             const SizedBox(width: 14),
                             Expanded(
                                 child: Text(f.$1, style: text.titleMedium)),
-                            const Icon(Icons.check_rounded,
-                                color: AppColors.sage),
+                            Icon(Icons.check_rounded, color: p.accent),
                           ],
                         ),
                       )),
@@ -111,16 +109,13 @@ class _PaywallScreenState extends State<PaywallScreen> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
-              child: PrimaryButton(
-                label: 'Start free trial',
-                onPressed: _subscribe,
-              ),
+              child: PrimaryButton(label: 'Start free trial', onPressed: _subscribe),
             ),
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: Text(
                 'Cancel anytime · Prices vary by region',
-                style: text.bodyMedium?.copyWith(color: AppColors.inkFaint),
+                style: text.bodyMedium?.copyWith(color: p.inkFaint),
               ),
             ),
           ],
@@ -152,16 +147,17 @@ class _PlanTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     final primary = Theme.of(context).colorScheme.primary;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: p.card,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? primary : AppColors.hairline,
+            color: selected ? primary : p.hairline,
             width: selected ? 2 : 1,
           ),
         ),
@@ -171,7 +167,7 @@ class _PlanTile extends StatelessWidget {
               selected
                   ? Icons.radio_button_checked_rounded
                   : Icons.radio_button_unchecked_rounded,
-              color: selected ? primary : AppColors.inkFaint,
+              color: selected ? primary : p.inkFaint,
             ),
             const SizedBox(width: 14),
             Expanded(
