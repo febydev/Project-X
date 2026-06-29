@@ -99,9 +99,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       PaywallScreen.softShow(context, 'Partner & caregiver sync');
       return;
     }
-    var code = _state.partnerCode;
-    if (code == null || code.isEmpty) {
-      code = (100000 + Random().nextInt(900000)).toString();
+    final existing = _state.partnerCode;
+    final code = (existing != null && existing.isNotEmpty)
+        ? existing
+        : (100000 + Random().nextInt(900000)).toString();
+    if (existing == null || existing.isEmpty) {
       _state.setPartner(_state.partnerName ?? 'Partner', code);
     }
     showDialog(

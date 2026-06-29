@@ -10,6 +10,17 @@ import '../../widgets/primary_button.dart';
 class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key});
 
+  /// Gentle, instantly-dismissible upsell shown when a free user taps a
+  /// premium feature. Not a harsh wall.
+  static Future<void> softShow(BuildContext context, String feature) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _SoftPaywall(feature: feature),
+    );
+  }
+
   @override
   State<PaywallScreen> createState() => _PaywallScreenState();
 }
@@ -28,17 +39,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
   void _subscribe() {
     AppState.instance.setPremium(true);
     Navigator.of(context).pop();
-  }
-
-  /// Gentle, instantly-dismissible upsell shown when a free user taps a
-  /// premium feature. Not a harsh wall.
-  static Future<void> softShow(BuildContext context, String feature) {
-    return showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _SoftPaywall(feature: feature),
-    );
   }
 
   @override
