@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../controllers/mom_controller.dart';
 import '../../data/app_state.dart';
-import '../../services/ai_service.dart';
 import '../../models/chat_message.dart';
+import '../../models/mom_state.dart';
+import '../../services/ai_service.dart';
 import '../../theme/category_colors.dart';
 import '../../theme/mira_palette.dart';
 import '../../widgets/soft_card.dart';
@@ -131,13 +133,21 @@ class _DailyActivityCardState extends State<DailyActivityCard> {
                         onPressed: () {
                           HapticFeedback.lightImpact();
                           _state.markActivityDone();
+                          MomController.showReaction(MomState.celebrate);
                         },
                         child: const Text('We did it ✓'),
                       ),
                     ),
                     const SizedBox(width: 10),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        ScaffoldMessenger.of(context)
+                          ..hideCurrentSnackBar()
+                          ..showSnackBar(const SnackBar(
+                            behavior: SnackBarBehavior.floating,
+                            content: Text('Kept for later 💛'),
+                          ));
+                      },
                       style: TextButton.styleFrom(foregroundColor: p.inkSoft),
                       child: const Text('Save for later'),
                     ),

@@ -32,7 +32,8 @@ class _MomCheckinSheetState extends State<MomCheckinSheet> {
     HapticFeedback.lightImpact();
     AppState.instance.addCheckin(_sleep, _mood, _body);
     if (AppState.instance.lowStreak >= 3) {
-      MomController.trigger(MomState.hug, holdFor: const Duration(seconds: 5));
+      MomController.showReaction(MomState.hug,
+          holdFor: const Duration(seconds: 4));
     }
     Navigator.pop(context);
   }

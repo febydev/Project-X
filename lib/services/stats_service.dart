@@ -142,3 +142,65 @@ class StatsService {
     return '$name\u2019s day looks right on track. 🌿';
   }
 }
+
+extension StatsCharts on StatsService {
+  List<DateTime> _lastDays(int days) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return List.generate(days, (i) => today.subtract(Duration(days: days - 1 - i)));
+  }
+
+  bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  /// Total sleep hours per day for the last [days] days (oldest → newest).
+  List<double> dailySleepHours(List<LogEntry> entries, {int days = 7}) {
+    final now = DateTime.now();
+    return _lastDays(days).map((d) {
+      var mins = 0;
+      for (final s in entries.where((e) => e.type == LogType.sleep)) {
+        if (!_sameDay(s.time, d)) continue;
+        final end = s.endTime ?? (_sameDay(d, now) ? now : s.time);
+        mins += end.difference(s.time).inMinutes;
+      }
+      return mins / 60.0;
+    }).toList();
+  }
+
+  /// Feed counts per day for the last [days] days.
+  List<double> dailyFeedCounts(List<LogEntry> entries, {int days = 7}) {
+    return _lastDays(days).map((d) {
+      return entries
+          .where((e) => e.type == LogType.feed && _sameDay(e.time, d))
+          .length
+          .toDouble();
+    }).toList();
+  }
+
+  /// Short labels (e.g. "Mo") for the last [days] days.
+  List<String> dayLabels({int days = 7}) {
+    const names = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+    return _lastDays(days).map((d) => names[(d.weekday - 1) % 7]).toList();
+  }
+
+  /// A warm weekly recap comparing the last 7 days to the previous 7.
+  String weeklyRecap(List<LogEntry> entries, String name) {
+    final now = DateTime.now();
+    int sleepsIn(DateTime from, DateTime to) => entries
+        .where((e) =>
+            e.type == LogType.sleep &&
+            e.time.isAfter(from) &&
+            e.time.isBefore(to))
+        .length;
+    final thisWeek = sleepsIn(now.subtract(const Duration(days: 7)), now);
+    final lastWeek = sleepsIn(now.subtract(const Duration(days: 14)),
+        now.subtract(const Duration(days: 7)));
+    if (thisWeek == 0 && lastWeek == 0) {
+      return 'Keep logging and Mira will show $name\u2019s weekly trends here.';
+    }
+    final diff = thisWeek - lastWeek;
+    if (diff > 0) return '$name had $diff more sleeps than last week 🌙';
+    if (diff < 0) return '$name had ${-diff} fewer sleeps than last week.';
+    return '$name\u2019s sleep was steady vs last week. 🌿';
+  }
+}

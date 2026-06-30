@@ -65,14 +65,14 @@ class _AddSleepScreenState extends State<AddSleepScreen> {
     HapticFeedback.mediumImpact();
     if (_state.runningSleep == null) {
       await _state.startSleep();
-      MomController.trigger(MomState.shh);
+      MomController.showReaction(MomState.shh);
       setState(() {});
     } else {
       await _state.stopSleep(details: {
         'startTags': _startTags.toList(),
         'endTags': _endTags.toList(),
       });
-      MomController.trigger(MomState.surprised);
+      MomController.showReaction(MomState.surprised);
       if (mounted) Navigator.of(context).pop();
     }
   }

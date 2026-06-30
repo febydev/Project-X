@@ -319,6 +319,33 @@ class AppState extends ChangeNotifier {
     return streak;
   }
 
+  /// Consecutive days (ending today, or yesterday if nothing yet today) with at
+  /// least one logged entry — the engagement streak.
+  int get logStreak {
+    if (_entries.isEmpty) return 0;
+    final days = entries
+        .map((e) => DateTime(e.time.year, e.time.month, e.time.day))
+        .toSet();
+    final now = DateTime.now();
+    var day = DateTime(now.year, now.month, now.day);
+    if (!days.contains(day)) {
+      day = day.subtract(const Duration(days: 1));
+    }
+    var streak = 0;
+    while (days.contains(day)) {
+      streak++;
+      day = day.subtract(const Duration(days: 1));
+    }
+    return streak;
+  }
+
+  /// Minutes since the last log of [type], or null if never.
+  int? minutesSinceLast(LogType type) {
+    final e = lastOf(type);
+    if (e == null) return null;
+    return DateTime.now().difference(e.time).inMinutes;
+  }
+
   // ---- Daily activity ----
   bool get needsNewActivity => _activityDate != _todayKey;
 

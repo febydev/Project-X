@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../theme/mira_palette.dart';
+import '../../widgets/animated_background.dart';
 import '../../widgets/glass_container.dart';
+import '../../widgets/mom_popup_host.dart';
 import '../chat/chat_screen.dart';
 import '../home/home_screen.dart';
 import '../settings/settings_screen.dart';
@@ -42,7 +44,14 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      body: IndexedStack(index: _index, children: _screens),
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          const Positioned.fill(child: AnimatedBackground()),
+          IndexedStack(index: _index, children: _screens),
+          const MomPopupHost(),
+        ],
+      ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
         child: GlassContainer(

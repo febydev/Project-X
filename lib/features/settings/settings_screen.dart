@@ -147,6 +147,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final text = Theme.of(context).textTheme;
     final p = context.palette;
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         bottom: false,
         child: ListenableBuilder(

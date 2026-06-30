@@ -37,13 +37,13 @@ class _HomeScreenState extends State<HomeScreen> {
       // After-10pm tired greeting.
       final hour = DateTime.now().hour;
       if (hour >= 22 || hour < 5) {
-        MomController.trigger(MomState.tired,
-            holdFor: const Duration(seconds: 5));
+        MomController.showReaction(MomState.tired,
+            holdFor: const Duration(seconds: 4));
       }
       // If a nap window is already open on launch, she points at the clock.
       final nap = PredictionService.instance.nextNap(_state.entries);
       if (nap.ready && (nap.etaMinutes ?? 1) <= 0) {
-        MomController.trigger(MomState.pointing);
+        MomController.showReaction(MomState.pointing);
       }
     });
   }
@@ -61,16 +61,82 @@ class _HomeScreenState extends State<HomeScreen> {
         .push(MaterialPageRoute(builder: (_) => const AddSleepScreen()));
   }
 
-  void _tapFeed() {
+  Future<bool> _confirmIfRecent(LogType type, String label) async {
+    final mins = _state.minutesSinceLast(type);
+    if (mins == null || mins >= 5) return true;
+    final again = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Log $label again?'),
+        content: Text(
+            'You logged $label ${mins <= 0 ? 'just now' : '$mins min ago'}. '
+            'Add another so your data stays accurate?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Log again')),
+        ],
+      ),
+    );
+    return again ?? false;
+  }
+
+  Future<void> _tapFeed() async {
+    if (!await _confirmIfRecent(LogType.feed, 'feeding')) return;
     HapticFeedback.lightImpact();
     _state.addFeed();
-    MomController.trigger(MomState.celebrate);
+    MomController.showReaction(MomState.celebrate);
     _toast('Feeding logged');
   }
 
   void _tapDiaper() {
     HapticFeedback.lightImpact();
     LogSheets.diaper(context);
+  }
+
+  void _quickAdd() {
+    HapticFeedback.lightImpact();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _QuickAddSheet(
+        onFeed: _tapFeed,
+        onSleep: _tapSleep,
+        onDiaper: _tapDiaper,
+        onGrowth: _tapGrowth,
+      ),
+    );
+  }
+
+  Future<void> _editName() async {
+    final profile = _state.profile;
+    if (profile == null) return;
+    final controller = TextEditingController(text: profile.name);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Baby'),
+        content: TextField(
+          controller: controller,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(border: OutlineInputBorder()),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: const Text('Save')),
+        ],
+      ),
+    );
+    if (result != null && result.trim().isNotEmpty) {
+      await _state.saveProfile(profile.copyWith(name: result.trim()));
+    }
   }
 
   void _tapGrowth() {
@@ -95,6 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final p = context.palette;
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         bottom: false,
         child: ListenableBuilder(
@@ -114,7 +181,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.fromLTRB(18, 8, 18, 120),
                   sliver: SliverList.list(
                     children: [
-                      _TopBar(name: _state.babyName),
+                      _TopBar(
+                        name: _state.babyName,
+                        streak: _state.logStreak,
+                        onAdd: _quickAdd,
+                        onName: _editName,
+                      ),
                       const SizedBox(height: 16),
                       _PredictionCard(state: _state, entries: entries)
                           .animate()
@@ -154,6 +226,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: _tapGrowth,
                       ),
                       const SizedBox(height: 16),
+                      _RecapCard(
+                          text: StatsService.instance
+                              .weeklyRecap(entries, _state.babyName)),
+                      const SizedBox(height: 12),
                       const DailyActivityCard(),
                       const SizedBox(height: 12),
                       _CalmCard(onTap: () {
@@ -207,8 +283,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
 // ===================== widgets =====================
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.name});
+  const _TopBar({
+    required this.name,
+    required this.streak,
+    required this.onAdd,
+    required this.onName,
+  });
   final String name;
+  final int streak;
+  final VoidCallback onAdd;
+  final VoidCallback onName;
 
   @override
   Widget build(BuildContext context) {
@@ -225,17 +309,166 @@ class _TopBar extends StatelessWidget {
               size: 22, color: p.onAccentContainer),
         ),
         const SizedBox(width: 10),
-        Text(name, style: text.titleLarge),
-        Icon(Icons.keyboard_arrow_down_rounded, color: p.inkSoft),
+        GestureDetector(
+          onTap: onName,
+          behavior: HitTestBehavior.opaque,
+          child: Row(
+            children: [
+              Text(name, style: text.titleLarge),
+              Icon(Icons.keyboard_arrow_down_rounded, color: p.inkSoft),
+            ],
+          ),
+        ),
         const Spacer(),
-        Container(
-          height: 40,
-          width: 40,
-          decoration: BoxDecoration(
-              color: p.accentContainer, shape: BoxShape.circle),
-          child: Icon(Icons.add_rounded, color: p.onAccentContainer),
+        if (streak >= 2) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF1DC),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('🔥', style: TextStyle(fontSize: 14)),
+                const SizedBox(width: 4),
+                Text('$streak',
+                    style: text.labelLarge?.copyWith(
+                        color: const Color(0xFFF57C00),
+                        fontWeight: FontWeight.w800)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+        ],
+        GestureDetector(
+          onTap: onAdd,
+          child: Container(
+            height: 40,
+            width: 40,
+            decoration: BoxDecoration(
+                color: p.accentContainer, shape: BoxShape.circle),
+            child: Icon(Icons.add_rounded, color: p.onAccentContainer),
+          ),
         ),
       ],
+    );
+  }
+}
+
+class _RecapCard extends StatelessWidget {
+  const _RecapCard({required this.text});
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final p = context.palette;
+    return SoftCard(
+      child: Row(
+        children: [
+          Container(
+            height: 42,
+            width: 42,
+            decoration:
+                BoxDecoration(color: p.accentContainer, shape: BoxShape.circle),
+            child: Icon(Icons.insights_rounded, color: p.onAccentContainer),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('This week', style: t.titleMedium),
+                const SizedBox(height: 2),
+                Text(text, style: t.bodyMedium),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickAddSheet extends StatelessWidget {
+  const _QuickAddSheet({
+    required this.onFeed,
+    required this.onSleep,
+    required this.onDiaper,
+    required this.onGrowth,
+  });
+  final VoidCallback onFeed;
+  final VoidCallback onSleep;
+  final VoidCallback onDiaper;
+  final VoidCallback onGrowth;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final text = Theme.of(context).textTheme;
+    final items = [
+      (LogType.feed, onFeed),
+      (LogType.sleep, onSleep),
+      (LogType.diaper, onDiaper),
+      (LogType.growth, onGrowth),
+    ];
+    return Container(
+      decoration: BoxDecoration(
+        color: p.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+                height: 5,
+                width: 44,
+                decoration: BoxDecoration(
+                    color: p.hairline,
+                    borderRadius: BorderRadius.circular(3))),
+          ),
+          const SizedBox(height: 18),
+          Text('Quick add', style: text.titleLarge),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              for (final it in items) ...[
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      it.$2();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      decoration: BoxDecoration(
+                        gradient: it.$1.gradient,
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(it.$1.icon, color: Colors.white),
+                          const SizedBox(height: 6),
+                          Text(it.$1.label,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                if (it != items.last) const SizedBox(width: 10),
+              ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -329,7 +562,8 @@ class _PredictionCard extends StatelessWidget {
           ),
           ValueListenableBuilder<MomState>(
             valueListenable: MomController.state,
-            builder: (context, momState, _) => MomCharacter(state: momState),
+            builder: (context, momState, _) =>
+                MomCharacter(state: momState, halfBody: true, width: 110, height: 150),
           ),
         ],
       ),

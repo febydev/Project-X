@@ -91,7 +91,7 @@ class _DiaperSheet extends StatelessWidget {
                   onTap: () {
                     HapticFeedback.lightImpact();
                     AppState.instance.addDiaper(o.$1);
-                    MomController.trigger(MomState.diaper);
+                    MomController.showReaction(MomState.diaper);
                     Navigator.pop(context);
                   },
                   child: Container(
@@ -202,6 +202,7 @@ class _FeedSheetState extends State<_FeedSheet> {
                 'side': _side,
                 if (ml != null) 'amountMl': ml,
               });
+              MomController.showReaction(MomState.celebrate);
               Navigator.pop(context);
             },
             child: const Text('Save feeding'),
@@ -282,6 +283,7 @@ class _GrowthSheetState extends State<_GrowthSheet> {
                 weightKg: double.tryParse(_weight.text),
                 heightCm: double.tryParse(_height.text),
               );
+              MomController.showReaction(MomState.celebrate);
               Navigator.pop(context);
             },
             child: const Text('Save growth'),

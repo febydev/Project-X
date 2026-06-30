@@ -4,11 +4,22 @@ import 'package:flutter/material.dart';
 
 import '../models/mom_state.dart';
 
-/// Displays the animated WebP mom mascot for a given [MomState], with a 300ms
-/// cross-fade between states and extra Flutter motion on top of the WebP.
+/// Displays the animated WebP mom mascot for a given [MomState].
+/// Transparent background. When [halfBody] is true (home header) it crops to
+/// the upper portion; otherwise it shows the full body (corner pop-in).
 class MomCharacter extends StatefulWidget {
-  const MomCharacter({super.key, required this.state});
+  const MomCharacter({
+    super.key,
+    required this.state,
+    this.halfBody = false,
+    this.width = 120,
+    this.height = 160,
+  });
+
   final MomState state;
+  final bool halfBody;
+  final double width;
+  final double height;
 
   @override
   State<MomCharacter> createState() => _MomCharacterState();
@@ -16,7 +27,6 @@ class MomCharacter extends StatefulWidget {
 
 class _MomCharacterState extends State<MomCharacter>
     with SingleTickerProviderStateMixin {
-  // Drives the repeating motions (idle bob, calm breathe).
   late final AnimationController _loop = AnimationController(
     vsync: this,
     duration: const Duration(seconds: 3),
@@ -37,8 +47,8 @@ class _MomCharacterState extends State<MomCharacter>
       child: Image.asset(
         widget.state.asset,
         key: ValueKey(widget.state),
-        width: 120,
-        height: 160,
+        width: widget.width,
+        height: widget.height,
         fit: BoxFit.contain,
         gaplessPlayback: true,
       ),
@@ -47,7 +57,6 @@ class _MomCharacterState extends State<MomCharacter>
     Widget animated;
     switch (widget.state) {
       case MomState.idle:
-        // very subtle bob up/down ~2px over 3s, repeating
         animated = AnimatedBuilder(
           animation: _loop,
           builder: (context, child) => Transform.translate(
@@ -58,19 +67,16 @@ class _MomCharacterState extends State<MomCharacter>
         );
         break;
       case MomState.calm:
-        // slow gentle breathe scale 1.0 → 1.03 → 1.0, repeating (~2s feel)
         animated = AnimatedBuilder(
           animation: _loop,
           builder: (context, child) {
-            final s = 1.0 +
-                0.015 * (1 - math.cos(_loop.value * 2 * math.pi));
+            final s = 1.0 + 0.015 * (1 - math.cos(_loop.value * 2 * math.pi));
             return Transform.scale(scale: s, child: child);
           },
           child: image,
         );
         break;
       case MomState.celebrate:
-        // one-shot scale pulse 1.0 → 1.12 → 1.0 over 400ms
         animated = TweenAnimationBuilder<double>(
           key: const ValueKey('celebrate'),
           tween: Tween(begin: 0, end: 1),
@@ -83,7 +89,6 @@ class _MomCharacterState extends State<MomCharacter>
         );
         break;
       case MomState.surprised:
-        // quick horizontal shake (3 fast oscillations)
         animated = TweenAnimationBuilder<double>(
           key: const ValueKey('surprised'),
           tween: Tween(begin: 0, end: 1),
@@ -96,18 +101,21 @@ class _MomCharacterState extends State<MomCharacter>
         );
         break;
       default:
-        animated = image; // diaper, shh, pointing, hug, tired → just fade
+        animated = image;
     }
 
-    return Container(
-      width: 120,
-      height: 160,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Center(child: animated),
-    );
+    if (widget.halfBody) {
+      return SizedBox(
+        width: widget.width,
+        child: ClipRect(
+          child: Align(
+            alignment: Alignment.topCenter,
+            heightFactor: 0.6,
+            child: animated,
+          ),
+        ),
+      );
+    }
+    return animated;
   }
 }

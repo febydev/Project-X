@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -47,6 +48,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     final text = Theme.of(context).textTheme;
     final p = context.palette;
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         bottom: false,
         child: ListenableBuilder(
@@ -242,7 +244,7 @@ class _WeekGrid extends StatelessWidget {
       children: [
         Row(
           children: [
-            const SizedBox(width: 34),
+            const SizedBox(width: 40),
             for (final d in days)
               Expanded(
                 child: Column(
@@ -265,7 +267,7 @@ class _WeekGrid extends StatelessWidget {
             children: [
               // hour axis
               SizedBox(
-                width: 34,
+                width: 40,
                 child: Column(
                   children: [
                     for (int h = 0; h < 24; h += 3)
@@ -290,10 +292,10 @@ class _WeekGrid extends StatelessWidget {
   }
 
   String _hourLabel(int h) {
-    if (h == 0) return '12a';
-    if (h < 12) return '${h}a';
-    if (h == 12) return '12p';
-    return '${h - 12}p';
+    if (h == 0) return '12am';
+    if (h < 12) return '${h}am';
+    if (h == 12) return '12pm';
+    return '${h - 12}pm';
   }
 }
 
@@ -372,10 +374,28 @@ class _SummaryView extends StatelessWidget {
     final p = context.palette;
     final stats =
         StatsService.instance.summary(state.entries, state.ageMonths);
+    final labels = StatsService.instance.dayLabels();
+    final sleepHours = StatsService.instance.dailySleepHours(state.entries);
+    final feedCounts = StatsService.instance.dailyFeedCounts(state.entries);
     return ListView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 120),
       children: [
+        _TrendChart(
+          title: 'Sleep · hours per day',
+          values: sleepHours,
+          labels: labels,
+          color: CategoryColors.sleep,
+          suffix: 'h',
+        ),
+        const SizedBox(height: 12),
+        _TrendChart(
+          title: 'Feeds per day',
+          values: feedCounts,
+          labels: labels,
+          color: CategoryColors.feed,
+        ),
+        const SizedBox(height: 18),
         for (final s in stats) ...[
           SoftCard(
             child: Row(
@@ -423,6 +443,114 @@ class _SummaryView extends StatelessWidget {
           style: text.bodyMedium?.copyWith(color: p.inkFaint, fontSize: 12),
         ),
       ],
+    );
+  }
+}
+
+class _TrendChart extends StatelessWidget {
+  const _TrendChart({
+    required this.title,
+    required this.values,
+    required this.labels,
+    required this.color,
+    this.suffix = '',
+  });
+  final String title;
+  final List<double> values;
+  final List<String> labels;
+  final Color color;
+  final String suffix;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final p = context.palette;
+    final maxV = values.isEmpty
+        ? 1.0
+        : values.reduce((a, b) => a > b ? a : b);
+    final maxY = (maxV <= 0 ? 1.0 : maxV * 1.25);
+    final latest = values.isEmpty ? 0.0 : values.last;
+
+    return SoftCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(title, style: text.titleMedium)),
+              Text(
+                '${latest.toStringAsFixed(suffix == 'h' ? 1 : 0)}$suffix',
+                style: text.titleLarge?.copyWith(color: color),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 130,
+            child: LineChart(
+              LineChartData(
+                minX: 0,
+                maxX: ((values.length - 1).clamp(1, 999)).toDouble(),
+                minY: 0,
+                maxY: maxY,
+                gridData: FlGridData(show: false),
+                borderData: FlBorderData(show: false),
+                lineTouchData: LineTouchData(enabled: false),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  topTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      interval: 1,
+                      getTitlesWidget: (value, meta) {
+                        final i = value.toInt();
+                        if (i < 0 || i >= labels.length) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(labels[i],
+                              style: text.bodyMedium
+                                  ?.copyWith(fontSize: 10, color: p.inkFaint)),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: [
+                      for (int i = 0; i < values.length; i++)
+                        FlSpot(i.toDouble(), values[i]),
+                    ],
+                    isCurved: true,
+                    color: color,
+                    barWidth: 3,
+                    isStrokeCapRound: true,
+                    dotData: FlDotData(show: false),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          color.withValues(alpha: 0.30),
+                          color.withValues(alpha: 0.0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
