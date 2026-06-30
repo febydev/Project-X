@@ -112,13 +112,13 @@ class _MomPopupHostState extends State<MomPopupHost>
                   ),
                 ),
               SizedBox(
-                width: 150,
-                height: 190,
+                width: 185,
+                height: 250,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    MomEffects(state: s, size: 190),
-                    MomCharacter(state: s, width: 140, height: 180),
+                    MomEffects(state: s, size: 240),
+                    MomCharacter(state: s, width: 175, height: 240),
                   ],
                 ),
               ),

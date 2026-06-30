@@ -53,7 +53,8 @@ class _AppShellState extends State<AppShell> {
         ],
       ),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+        padding: EdgeInsets.fromLTRB(
+            20, 0, 20, 14 + MediaQuery.of(context).padding.bottom),
         child: GlassContainer(
           radius: 26,
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),

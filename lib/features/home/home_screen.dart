@@ -563,7 +563,7 @@ class _PredictionCard extends StatelessWidget {
           ValueListenableBuilder<MomState>(
             valueListenable: MomController.state,
             builder: (context, momState, _) =>
-                MomCharacter(state: momState, halfBody: true, width: 110, height: 150),
+                MomCharacter(state: momState, halfBody: true, width: 140, height: 215),
           ),
         ],
       ),
