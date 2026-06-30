@@ -9,6 +9,8 @@ jobs:
   build-apk:
     name: Build Android APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -19,6 +21,30 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+
+      # A single, persistent signing key so every build is signed identically.
+      # Generated once on the first run, committed, then reused — this is what
+      # lets the app UPDATE on your phone without "App not installed".
+      - name: Stable signing key
+        run: |
+          mkdir -p ~/.android
+          if [ -f ci/debug.keystore ]; then
+            echo "Reusing committed signing key."
+            cp ci/debug.keystore ~/.android/debug.keystore
+          else
+            echo "Generating persistent signing key (one-time)."
+            keytool -genkeypair -v -keystore ~/.android/debug.keystore \
+              -storepass android -keypass android -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Mira,C=US"
+            mkdir -p ci
+            cp ~/.android/debug.keystore ci/debug.keystore
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add ci/debug.keystore
+            git commit -m "ci: add persistent signing key [skip ci]"
+            git push
+          fi
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
